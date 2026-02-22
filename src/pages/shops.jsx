@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import HeartIcon from '../components/HeartIcon.jsx';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../libs/supabase.js';
 
 export default function Shops() {
-  // 1. Dynamic States
+  const navigate = useNavigate(); 
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
@@ -114,9 +115,13 @@ export default function Shops() {
         ) : sortedAndFilteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {/* NEW: We now map over the sorted array instead of just the filtered one */}
+            {/* NEW: We now map over the sorted array instead of just the filtered one */}
             {sortedAndFilteredProducts.map((product) => (
-              <div key={product.id} className="group bg-[#0f1115] border border-gray-800 rounded-xl overflow-hidden hover:border-electric transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(64,224,255,0.15)] cursor-pointer shadow-lg">
-                
+              <div 
+                key={product.id} 
+                onClick={() => navigate(`/product/${product.id}`)}
+                className="group bg-[#0f1115] border border-gray-800 rounded-xl overflow-hidden hover:border-electric transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(64,224,255,0.15)] cursor-pointer shadow-lg"
+              >
                 {/* Product Image Box */}
                 <div className="relative h-72 bg-gray-900 overflow-hidden">
                   <div 
