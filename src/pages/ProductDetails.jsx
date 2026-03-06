@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../libs/supabase.js';
+import { useCart } from '../context/CartContext.jsx'; // 1. IMPORT THE HOOK
 
 export default function ProductDetails() {
-  const { id } = useParams(); // Grabs the product ID from the URL
+  const { id } = useParams(); 
   const navigate = useNavigate();
+  
+  // 2. PLUG INTO THE CART ENGINE
+  const { addToCart } = useCart(); 
   
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -13,7 +17,6 @@ export default function ProductDetails() {
   useEffect(() => {
     async function fetchProduct() {
       try {
-        // Fetch the single product that matches the ID in the URL
         const { data, error } = await supabase
           .from('products')
           .select('*')
@@ -111,8 +114,11 @@ export default function ProductDetails() {
                 >+</button>
               </div>
 
-              {/* Add to Cart Button */}
-              <button className="flex-1 bg-electric text-midnight font-black uppercase tracking-widest py-4 rounded hover:bg-white hover:shadow-[0_0_20px_#40E0FF] transition-all duration-300 flex items-center justify-center gap-3">
+              {/* 3. FIRE THE ADD TO CART FUNCTION ON CLICK */}
+              <button 
+                onClick={() => addToCart(product, quantity)}
+                className="flex-1 bg-electric text-midnight font-black uppercase tracking-widest py-4 rounded hover:bg-white hover:shadow-[0_0_20px_#40E0FF] transition-all duration-300 flex items-center justify-center gap-3"
+              >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -120,7 +126,7 @@ export default function ProductDetails() {
               </button>
             </div>
 
-            {/* Technical Specs (Static for now) */}
+            {/* Technical Specs */}
             <div>
               <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-4">Technical Specifications</h3>
               <ul className="space-y-3">
