@@ -8,8 +8,6 @@ export default function Success() {
   const [date, setDate] = useState('');
 
   useEffect(() => {
-    setOrderId(`MDNT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`);
-    
     const now = new Date();
     setDate(now.toLocaleDateString('en-US', { 
       year: 'numeric', month: 'long', day: 'numeric', 

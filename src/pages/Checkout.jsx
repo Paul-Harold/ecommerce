@@ -38,7 +38,7 @@ export default function Checkout() {
   useEffect(() => {
     async function fetchSupportData() {
       try {
-        const { data } = await supabase.from('site_content').select('content_data').eq('page_name', 'checkout').single();
+        const { data } = await supabase.from('site_content').select('content_data').eq('page_name', 'checkout').maybeSingle();
         if (data && data.content_data) {
           setSupportInfo({
             email: data.content_data.support_email || supportInfo.email,
@@ -138,30 +138,64 @@ export default function Checkout() {
 
     setIsProcessing(true);
     setError('');
-    
-    if (appliedVoucher) {
-      try {
-        await supabase.from('vouchers').update({ current_uses: appliedVoucher.current_uses + 1 }).eq('id', appliedVoucher.id);
-      } catch (err) {
-        console.error("Voucher use log failed", err);
-      }
-    }
 
-    setTimeout(() => {
+    try {
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert([{
+          customer_email: formData.email,
+          customer_first_name: formData.firstName,
+          customer_last_name: formData.lastName,
+          shipping_address: formData.address,
+          shipping_city: formData.city,
+          shipping_zip: formData.zip,
+          shipping_country: formData.country,
+          subtotal: calculatedTotal,
+          discount_amount: discountAmount,
+          tax_amount: tax,
+          shipping_fee: shipping,
+          total_amount: finalTotal,
+          voucher_used: appliedVoucher ? appliedVoucher.code : null
+        }])
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      const orderItemsPayload = activeCart.map(item => ({
+        order_id: orderData.id,
+        product_name: item.name,
+        quantity: item.quantity || 1,
+        price_at_purchase: parseFloat(item.price) || 0
+      }));
+
+      const { error: itemsError } = await supabase.from('order_items').insert(orderItemsPayload);
+      if (itemsError) throw itemsError;
+
+      if (appliedVoucher) {
+        await supabase.from('vouchers').update({ current_uses: appliedVoucher.current_uses + 1 }).eq('id', appliedVoucher.id);
+      }
+
       if (clearCart) clearCart();
       setIsProcessing(false);
-      navigate('/success', { 
-        state: { 
-          cart: activeCart, 
-          total: finalTotal, 
+
+      navigate('/success', {
+        state: {
+          orderId: orderData.id,
+          cart: activeCart,
+          total: finalTotal,
           discount: discountAmount,
           shipping: shipping,
           tax: tax,
-          customer: formData 
-        } 
+          customer: formData
+        }
       });
 
-    }, 2000);
+    } catch (err) {
+      console.error(err);
+      setError('Transaction failed. Secure connection lost.');
+      setIsProcessing(false);
+    }
   };
 
   if (activeCart.length === 0) {
