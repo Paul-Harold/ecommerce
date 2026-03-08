@@ -8,6 +8,8 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isProfileSidebarOpen, setIsProfileSidebarOpen] = useState(false);
+  const [isLightMode, setIsLightMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   
@@ -15,6 +17,9 @@ export default function Navbar() {
   const { favorites } = useFavorites();
 
   useEffect(() => {
+    const isLight = document.documentElement.classList.contains('light-mode');
+    setIsLightMode(isLight);
+
     const verifyAdminStatus = async (userId) => {
       try {
         const { data, error } = await supabase
@@ -56,6 +61,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setShowLogoutModal(false);
+    setIsProfileSidebarOpen(false);
     navigate('/login');
   };
 
@@ -65,6 +71,16 @@ export default function Navbar() {
       navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
     }
+  };
+
+  const toggleTheme = () => {
+    document.documentElement.classList.toggle('light-mode');
+    setIsLightMode(!isLightMode);
+  };
+
+  const handleProfileNavigation = (tab) => {
+    setIsProfileSidebarOpen(false);
+    navigate('/profile', { state: { activeTab: tab } });
   };
 
   return (
@@ -85,7 +101,6 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-6">
-
             <form onSubmit={handleSearch} className="hidden lg:flex items-center relative">
               <input 
                 type="text" 
@@ -127,12 +142,12 @@ export default function Navbar() {
 
             {user ? (
               <button 
-                onClick={() => setShowLogoutModal(true)} 
-                title="Sign Out"
+                onClick={() => setIsProfileSidebarOpen(true)} 
+                title="Settings"
                 className="text-gray-300 hover:text-electric transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </button>
             ) : (
@@ -160,8 +175,93 @@ export default function Navbar() {
         </div>
       </nav>
 
+      {/* Profile Sidebar */}
+      {isProfileSidebarOpen && user && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] animate-fadeIn" 
+            onClick={() => setIsProfileSidebarOpen(false)}
+          ></div>
+          <div className="fixed top-0 right-0 h-full w-full max-w-sm bg-[#0f1115] border-l border-gray-800 z-[101] shadow-2xl flex flex-col animate-slideInRight">
+            
+            <div className="p-6 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-xl font-black uppercase tracking-widest text-white">Command Center</h2>
+              <button onClick={() => setIsProfileSidebarOpen(false)} className="text-gray-500 hover:text-white transition-colors">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+              
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-800 border border-gray-700 rounded-full flex items-center justify-center shrink-0">
+                  <span className="font-black text-gray-400 text-lg uppercase">{user.email.charAt(0)}</span>
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-[10px] text-electric font-bold uppercase tracking-widest mb-0.5">Active Operative</p>
+                  <p className="font-mono text-white text-sm truncate">{user.email}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between bg-gray-900/50 border border-gray-800 p-4 rounded-xl">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-white mb-1">Visual Mode</p>
+                  <p className="text-[10px] text-gray-500 font-mono">{isLightMode ? 'Daylight Protocol' : 'Midnight Protocol'}</p>
+                </div>
+                <button 
+                  onClick={toggleTheme} 
+                  className={`w-14 h-7 rounded-full p-1 transition-colors relative flex items-center ${!isLightMode ? 'bg-electric' : 'bg-gray-700'}`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${!isLightMode ? 'translate-x-7' : 'translate-x-0'}`}></div>
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <button 
+                  onClick={() => handleProfileNavigation('dashboard')}
+                  className="w-full flex items-center justify-between p-4 bg-gray-900 border border-gray-800 hover:border-electric rounded-xl group transition-all"
+                >
+                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">Overview</span>
+                  <svg className="w-4 h-4 text-gray-600 group-hover:text-electric transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
+
+                <button 
+                  onClick={() => handleProfileNavigation('orders')}
+                  className="w-full flex items-center justify-between p-4 bg-gray-900 border border-gray-800 hover:border-electric rounded-xl group transition-all"
+                >
+                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">History</span>
+                  <svg className="w-4 h-4 text-gray-600 group-hover:text-electric transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
+
+                <button 
+                  onClick={() => handleProfileNavigation('settings')}
+                  className="w-full flex items-center justify-between p-4 bg-gray-900 border border-gray-800 hover:border-electric rounded-xl group transition-all"
+                >
+                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">Settings</span>
+                  <svg className="w-4 h-4 text-gray-600 group-hover:text-electric transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </div>
+
+            </div>
+
+            <div className="p-6 border-t border-gray-800 bg-[#0f1115]">
+              <button 
+                onClick={() => setShowLogoutModal(true)}
+                className="w-full py-4 bg-red-900/10 border border-red-900/30 text-red-500 rounded font-bold uppercase tracking-widest text-xs hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                Log-out
+              </button>
+            </div>
+
+          </div>
+        </>
+      )}
+
       {showLogoutModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
           <div className="bg-[#0f1115] border border-gray-800 p-8 rounded-xl shadow-2xl max-w-sm w-full animate-fadeIn">
             
             <div className="flex justify-center mb-6">

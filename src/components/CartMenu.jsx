@@ -2,7 +2,8 @@ import { useCart } from '../context/CartContext.jsx';
 import { useNavigate } from 'react-router-dom';
 
 export default function CartMenu() {
-  const { cartItems, isCartOpen, setIsCartOpen, removeFromCart, activePromo } = useCart();
+  // Added updateQuantity to the destructuring
+  const { cartItems, isCartOpen, setIsCartOpen, removeFromCart, activePromo, updateQuantity } = useCart();
   const navigate = useNavigate();
 
   // 1. Base Subtotal (Accounts for individual item markdowns from the database)
@@ -32,6 +33,20 @@ export default function CartMenu() {
 
   const finalTotal = subtotal - globalDiscountAmount;
 
+  // Navigation Helper
+  const goToDetails = (id) => {
+    setIsCartOpen(false);
+    navigate(`/product/${id}`);
+  };
+
+  // Quantity Helper
+  const handleQuantityChange = (id, currentQty, delta) => {
+    const newQty = currentQty + delta;
+    if (newQty >= 1 && updateQuantity) {
+      updateQuantity(id, newQty);
+    }
+  };
+
   return (
     <>
       {isCartOpen && (
@@ -50,7 +65,7 @@ export default function CartMenu() {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-800">
           <h2 className="text-2xl font-black uppercase tracking-widest text-white">
-            Your <span className="text-electric">Arsenal</span>
+            Shopping <span className="text-electric">Cart</span>
           </h2>
           <button onClick={() => setIsCartOpen(false)} className="text-gray-500 hover:text-white transition-colors p-2">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,7 +75,7 @@ export default function CartMenu() {
         </div>
 
         {/* Cart Items List */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
           {cartItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center opacity-50">
               <svg className="w-16 h-16 mb-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -77,18 +92,48 @@ export default function CartMenu() {
               const effectiveTotal = effectivePrice * item.quantity;
 
               return (
-                <div key={item.id} className="flex gap-4 bg-gray-900/50 p-3 rounded-lg border border-gray-800/50 relative overflow-hidden">
+                <div key={item.id} className="flex gap-4 bg-gray-900/50 p-3 rounded-lg border border-gray-800/50 relative overflow-hidden group">
                   
                   {/* Subtle glow if item is on sale */}
                   {itemMarkdown > 0 && <div className="absolute left-0 top-0 bottom-0 w-1 bg-ion"></div>}
 
-                  <img src={item.image} alt={item.name} className="w-20 h-20 object-contain bg-gray-900 rounded p-2 z-10" />
+                  {/* Clickable Image */}
+                  <div 
+                    onClick={() => goToDetails(item.id)}
+                    className="cursor-pointer shrink-0 relative overflow-hidden rounded bg-gray-900 z-10 w-20 h-20 flex items-center justify-center border border-gray-800 hover:border-electric transition-colors"
+                  >
+                    <img src={item.image} alt={item.name} className="max-w-full max-h-full object-contain p-2 group-hover:scale-110 transition-transform duration-300" />
+                  </div>
                   
-                  <div className="flex-1 flex flex-col justify-center z-10">
-                    <p className="text-[10px] font-bold text-electric uppercase tracking-widest mb-1">{item.category}</p>
-                    <h3 className="text-sm font-bold text-white mb-1 line-clamp-1">{item.name}</h3>
+                  <div className="flex-1 flex flex-col justify-center z-10 py-1">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">{item.category}</p>
+                    
+                    {/* Clickable Title */}
+                    <h3 
+                      onClick={() => goToDetails(item.id)}
+                      className="text-sm font-bold text-white mb-2 line-clamp-1 cursor-pointer hover:text-electric transition-colors"
+                    >
+                      {item.name}
+                    </h3>
+                    
                     <div className="flex items-center justify-between mt-auto">
-                      <p className="text-gray-400 text-xs font-bold">Qty: {item.quantity}</p>
+                      
+                      {/* Quantity Editor */}
+                      <div className="flex items-center bg-[#0B0D10] border border-gray-700 rounded overflow-hidden">
+                        <button 
+                          onClick={() => handleQuantityChange(item.id, item.quantity, -1)}
+                          className="px-2.5 py-1 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                        >
+                          -
+                        </button>
+                        <span className="text-xs font-mono font-bold px-2 w-6 text-center">{item.quantity}</span>
+                        <button 
+                          onClick={() => handleQuantityChange(item.id, item.quantity, 1)}
+                          className="px-2.5 py-1 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
                       
                       {/* Show slashed price if item has individual markdown */}
                       {itemMarkdown > 0 ? (
@@ -102,7 +147,7 @@ export default function CartMenu() {
                     </div>
                   </div>
 
-                  <button onClick={() => removeFromCart(item.id)} className="text-gray-600 hover:text-red-500 transition-colors p-2 flex items-start z-10" title="Remove Item">
+                  <button onClick={() => removeFromCart(item.id)} className="text-gray-600 hover:text-red-500 transition-colors p-2 flex items-start z-10 shrink-0" title="Remove Item">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>

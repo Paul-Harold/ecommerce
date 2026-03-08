@@ -8,7 +8,9 @@ import { useFavorites } from '../context/FavoritesContext.jsx';
 export default function Shops() {
   const navigate = useNavigate(); 
   const location = useLocation();
-  const { activePromo } = useCart(); 
+  
+  // Pulling in addToCart and setIsCartOpen from the context
+  const { activePromo, addToCart, setIsCartOpen } = useCart(); 
   const { toggleFavorite, isFavorite } = useFavorites();
   
   const [products, setProducts] = useState([]);
@@ -96,6 +98,25 @@ export default function Shops() {
     return null;
   };
 
+  // Direct Add to Cart handler
+  const handleAddToCart = (e, product) => {
+    e.stopPropagation(); // Prevents the card click from navigating away
+    
+    const discountInfo = getDiscountInfo(product);
+    const finalPrice = discountInfo ? parseFloat(discountInfo.newPrice) : parseFloat(product.price);
+
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: finalPrice,
+      image: product.image,
+      quantity: 1
+    });
+    
+    // Slide the cart open to show visual confirmation
+    setIsCartOpen(true);
+  };
+
   const categories = ['All', 'Mouse', 'Keyboard', 'Headset', 'Microphones'];
 
   const filteredProducts = products.filter(item => {
@@ -157,7 +178,8 @@ export default function Shops() {
                 <p className="text-gray-400 mb-8 max-w-md line-clamp-3">
                   {featuredProduct.description || "Experience uncompromising performance with our flagship gear."}
                 </p>
-                <div className="flex items-center gap-6">
+                
+                <div className="flex items-center gap-6 mb-8">
                   {getDiscountInfo(featuredProduct) ? (
                     <div className="flex flex-col">
                       <span className="text-gray-500 line-through text-lg">${featuredProduct.price}</span>
@@ -166,8 +188,23 @@ export default function Shops() {
                   ) : (
                     <span className="text-3xl font-black text-electric">${featuredProduct.price}</span>
                   )}
-                  <button className="bg-white text-midnight font-bold py-3 px-8 rounded hover:bg-electric hover:text-midnight transition-all duration-300 uppercase tracking-wider flex items-center gap-2">
-                    View Specs <span className="text-xl leading-none">→</span>
+                </div>
+
+                <div className="flex flex-wrap gap-4">
+                  <button 
+                    onClick={(e) => handleAddToCart(e, featuredProduct)}
+                    className="bg-electric text-midnight font-bold py-3 px-8 rounded hover:bg-white hover:text-midnight transition-all duration-300 uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(64,224,255,0.4)]"
+                  >
+                    Add to Cart
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/product/${featuredProduct.id}`);
+                    }}
+                    className="bg-transparent border border-white text-white font-bold py-3 px-8 rounded hover:bg-white hover:text-midnight transition-all duration-300 uppercase tracking-wider flex items-center gap-2"
+                  >
+                    View Specs
                   </button>
                 </div>
               </div>
@@ -278,9 +315,22 @@ export default function Shops() {
                         />
                       </button>
                       
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
-                        <button className="bg-electric text-midnight font-bold py-3 px-8 rounded hover:bg-white transition-all duration-300 uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 pointer-events-auto">
-                          View Details
+                      {/* Hover Overlay with dual actions */}
+                      <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
+                        <button 
+                          onClick={(e) => handleAddToCart(e, product)}
+                          className="w-3/4 bg-electric text-midnight font-bold py-3 px-4 rounded hover:bg-white transition-all duration-300 uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 pointer-events-auto text-xs shadow-[0_0_10px_rgba(64,224,255,0.3)]"
+                        >
+                          Add to Cart
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/product/${product.id}`);
+                          }}
+                          className="w-3/4 bg-transparent border border-white text-white font-bold py-2 px-4 rounded hover:bg-white hover:text-midnight transition-all duration-300 uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0 pointer-events-auto text-xs"
+                        >
+                          Details
                         </button>
                       </div>
                     </div>

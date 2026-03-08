@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 
 export default function Success() {
   const location = useLocation();
+  const navigate = useNavigate();
   const orderData = location.state || null;
-  const [orderId, setOrderId] = useState('');
   const [date, setDate] = useState('');
 
   useEffect(() => {
+    // Snap to top on load
+    window.scrollTo(0, 0);
+    
     const now = new Date();
     setDate(now.toLocaleDateString('en-US', { 
       year: 'numeric', month: 'long', day: 'numeric', 
@@ -22,7 +25,7 @@ export default function Success() {
   if (!orderData) {
     return (
       <div className="min-h-screen bg-[#050608] flex flex-col items-center justify-center text-white px-4">
-        <h2 className="text-3xl font-black uppercase tracking-widest mb-4">No Active Deployment</h2>
+        <h2 className="text-3xl font-black uppercase tracking-widest mb-4">No Recent Order</h2>
         <p className="text-gray-500 mb-8 font-mono text-sm">No recent transaction data found in current session.</p>
         <Link to="/shop" className="bg-electric text-midnight font-bold uppercase tracking-widest px-8 py-4 rounded hover:bg-white transition-colors">
           Return to Armory
@@ -31,42 +34,49 @@ export default function Success() {
     );
   }
 
-  const { cart, total, discount, shipping, tax, customer } = orderData;
+  const { cart, total, discount, shipping, tax, customer, orderId } = orderData;
   const subtotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity || 1)), 0);
 
   return (
     <div className="min-h-screen bg-[#050608] text-white pt-20 pb-24 px-6 print:bg-white print:text-black print:pt-0">
       <div className="max-w-2xl mx-auto">
         
-        <div className="text-center mb-12 print:hidden">
+        <div className="text-center mb-12 print:hidden animate-fadeIn">
           <div className="w-20 h-20 bg-ion/10 text-ion border border-ion rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(57,255,20,0.2)]">
             <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-4xl font-black uppercase tracking-widest text-white mb-2">Deployment Authorized</h1>
-          <p className="text-gray-400 font-mono text-sm mb-6">Encrypted confirmation has been routed to {customer.email}</p>
-          <div className="flex justify-center gap-4">
-            <button onClick={handlePrint} className="bg-gray-800 text-white hover:bg-white hover:text-black font-bold uppercase tracking-widest text-xs px-6 py-3 rounded transition-colors flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-widest text-white mb-2">
+            Thank you! Your order has been successfully placed.
+          </h1>
+          <p className="text-gray-400 font-mono text-sm mb-6">
+            A confirmation email has been sent to {customer.email}
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <button onClick={handlePrint} className="bg-gray-800 text-white hover:bg-white hover:text-black font-bold uppercase tracking-widest text-xs px-6 py-3 rounded transition-colors flex justify-center items-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
               Save PDF Receipt
             </button>
-            <Link to="/shop" className="bg-ion text-midnight hover:bg-white font-bold uppercase tracking-widest text-xs px-6 py-3 rounded transition-colors">
-              Continue Browsing
-            </Link>
+            <button 
+              onClick={() => navigate('/profile', { state: { activeTab: 'orders' } })}
+              className="bg-electric text-midnight hover:bg-white font-bold uppercase tracking-widest text-xs px-6 py-3 rounded transition-colors flex justify-center items-center"
+            >
+              Track Order
+            </button>
           </div>
         </div>
 
-        <div className="bg-[#0B0D10] border border-gray-800 p-8 md:p-12 rounded-xl font-mono text-sm print:border-none print:p-0 print:bg-white">
+        <div className="bg-[#0B0D10] border border-gray-800 p-8 md:p-12 rounded-xl font-mono text-sm print:border-none print:p-0 print:bg-white animate-fadeIn" style={{ animationDelay: '150ms' }}>
           
           <div className="flex justify-between items-start border-b border-dashed border-gray-700 pb-8 mb-8 print:border-gray-300">
             <div>
               <h2 className="text-2xl font-black uppercase tracking-widest text-white mb-1 print:text-black">MIDNIGHT_OS</h2>
-              <p className="text-gray-500 text-xs tracking-widest uppercase print:text-gray-500">Classified Hardware Division</p>
+              <p className="text-gray-500 text-xs tracking-widest uppercase print:text-gray-500">Hardware Division</p>
             </div>
             <div className="text-right">
               <p className="text-gray-400 font-bold print:text-gray-800">RECEIPT</p>
-              <p className="text-ion print:text-black">{orderId}</p>
+              <p className="text-ion print:text-black">#{orderId?.substring(0, 12) || 'PENDING'}</p>
               <p className="text-gray-500 text-xs mt-1 print:text-gray-500">{date}</p>
             </div>
           </div>
@@ -86,7 +96,7 @@ export default function Success() {
 
           <div className="mb-8">
             <div className="flex justify-between text-gray-600 text-[10px] font-bold uppercase tracking-widest border-b border-gray-800 pb-2 mb-4 print:border-gray-300 print:text-gray-400">
-              <span>Item Directive</span>
+              <span>Item</span>
               <span>Amount</span>
             </div>
             <div className="space-y-4">
@@ -128,7 +138,7 @@ export default function Success() {
           </div>
 
           <div className="mt-16 text-center border-t border-gray-800 pt-8 print:border-gray-300">
-            <p className="text-gray-600 text-[10px] uppercase tracking-widest print:text-gray-400">End of Transmission /// Midnight Hardware Division</p>
+            <p className="text-gray-600 text-[10px] uppercase tracking-widest print:text-gray-400">Thank you for shopping with Midnight OS</p>
           </div>
 
         </div>

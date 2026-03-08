@@ -12,6 +12,7 @@ import { FavoritesProvider } from './context/FavoritesContext.jsx';
 import Favorites from './pages/Favorites.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import Success from './pages/Success.jsx';
+import Profile from './pages/Profile.jsx';
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
             } 
           />
           <Route path="/success" element={<Success />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </div>
     </FavoritesProvider>
