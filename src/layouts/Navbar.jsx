@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import { useFavorites } from '../context/FavoritesContext.jsx';
@@ -9,17 +9,65 @@ export default function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isProfileSidebarOpen, setIsProfileSidebarOpen] = useState(false);
-  const [isLightMode, setIsLightMode] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // NEW: Mobile Menu State
   const navigate = useNavigate();
   
   const { cartCount, setIsCartOpen } = useCart();
   const { favorites } = useFavorites();
 
-  useEffect(() => {
-    const isLight = document.documentElement.classList.contains('light-mode');
-    setIsLightMode(isLight);
+  // --- Live Search States ---
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef(null);
 
+  // Close suggestions if the user clicks outside the search bar
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Debounced Supabase query for live suggestions
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSuggestions([]);
+        return;
+      }
+      
+      setIsSearching(true);
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, name, image, category')
+          .ilike('name', `%${searchQuery.trim()}%`)
+          .limit(5); // Only show the top 5 matches to keep it clean
+
+        if (!error && data) {
+          setSuggestions(data);
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      fetchSuggestions();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  // Handle Auth & Admin Status
+  useEffect(() => {
     const verifyAdminStatus = async (userId) => {
       try {
         const { data, error } = await supabase
@@ -65,17 +113,19 @@ export default function Navbar() {
     navigate('/login');
   };
 
-  const handleSearch = (e) => {
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowSuggestions(false);
       navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
     }
   };
 
-  const toggleTheme = () => {
-    document.documentElement.classList.toggle('light-mode');
-    setIsLightMode(!isLightMode);
+  const handleSuggestionClick = (id) => {
+    setShowSuggestions(false);
+    setSearchQuery('');
+    navigate(`/product/${id}`);
   };
 
   const handleProfileNavigation = (tab) => {
@@ -88,33 +138,87 @@ export default function Navbar() {
       <nav className="sticky top-0 z-50 w-full border-b border-gray-800 bg-[#0B0D10]/90 backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">
           
-          <div className="flex items-center gap-12">
-            <Link to="/" className="text-3xl font-black tracking-widest uppercase text-white hover:text-electric transition-colors">
+          <div className="flex items-center gap-6 md:gap-12">
+            
+            {/* NEW: Mobile Hamburger Button */}
+            <button 
+              className="md:hidden text-gray-300 hover:text-white transition-colors"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <Link to="/" className="text-2xl md:text-3xl font-black tracking-widest uppercase text-white hover:text-electric transition-colors">
               Midnight<span className="text-electric">.</span>
             </Link>
 
+            {/* Desktop Links */}
             <div className="hidden md:flex items-center gap-8">
               <Link to="/" className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-white transition-colors">Home</Link>
               <Link to="/shop" className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-white transition-colors">Shop</Link>
               <Link to="/offers" className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-ion transition-colors">Offers</Link>
+              <Link to="/about" className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-electric transition-colors">About</Link>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <form onSubmit={handleSearch} className="hidden lg:flex items-center relative">
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search gear..." 
-                className="bg-gray-900 border border-gray-700 text-sm rounded-full pl-5 pr-10 py-2 focus:outline-none focus:border-electric focus:ring-1 focus:ring-electric text-white placeholder-gray-500 transition-all w-64"
-              />
-              <button type="submit" className="absolute right-3 flex items-center justify-center">
-                <svg className="w-5 h-5 text-gray-400 hover:text-electric transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </form>
+          <div className="flex items-center gap-4 md:gap-6">
+            
+            {/* Live Search Bar (Desktop Only for now to keep mobile clean) */}
+            <div ref={searchContainerRef} className="hidden lg:block relative">
+              <form onSubmit={handleSearchSubmit} className="flex items-center relative">
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  placeholder="Search gear..." 
+                  className="bg-gray-900 border border-gray-700 text-sm rounded-full pl-5 pr-10 py-2 focus:outline-none focus:border-electric focus:ring-1 focus:ring-electric text-white placeholder-gray-500 transition-all w-64"
+                />
+                <button type="submit" className="absolute right-3 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-400 hover:text-electric transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              </form>
+
+              {/* Suggestions Dropdown */}
+              {showSuggestions && searchQuery.trim().length >= 2 && (
+                <div className="absolute top-full mt-2 w-full bg-[#0f1115] border border-gray-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden z-[100] animate-fadeIn">
+                  {isSearching ? (
+                    <div className="p-4 text-center text-[10px] text-electric uppercase tracking-widest font-mono animate-pulse">
+                      Scanning Arsenal...
+                    </div>
+                  ) : suggestions.length > 0 ? (
+                    <div className="flex flex-col">
+                      {suggestions.map(item => (
+                        <button 
+                          key={item.id}
+                          onClick={() => handleSuggestionClick(item.id)} 
+                          className="w-full flex items-center gap-3 p-3 hover:bg-gray-900 border-b border-gray-800 last:border-0 transition-colors text-left group"
+                        >
+                          <div className="w-10 h-10 bg-black rounded p-1 flex-shrink-0 border border-transparent group-hover:border-electric transition-colors">
+                            <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                          </div>
+                          <div>
+                            <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-electric transition-colors">{item.name}</p>
+                            <p className="text-gray-500 text-[10px] uppercase tracking-widest font-mono">{item.category}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-[10px] text-red-500 uppercase tracking-widest font-mono">
+                      No matching hardware
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             {isAdmin && (
               <Link 
@@ -143,7 +247,7 @@ export default function Navbar() {
             {user ? (
               <button 
                 onClick={() => setIsProfileSidebarOpen(true)} 
-                title="Settings"
+                title="Operative Dossier"
                 className="text-gray-300 hover:text-electric transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -175,14 +279,51 @@ export default function Navbar() {
         </div>
       </nav>
 
+      {/* NEW: Mobile Navigation Sidebar */}
+      {isMobileMenuOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] md:hidden" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          ></div>
+          <div className="fixed top-0 left-0 h-full w-[250px] bg-[#0f1115] border-r border-gray-800 z-[101] shadow-2xl flex flex-col md:hidden transform transition-transform duration-300">
+            
+            <div className="p-6 border-b border-gray-800 flex justify-between items-center">
+              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-black tracking-widest uppercase text-white">
+                Midnight<span className="text-electric">.</span>
+              </Link>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-white transition-colors">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 p-6 flex flex-col gap-6">
+              <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-white transition-colors">Home</Link>
+              <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-white transition-colors">Shop</Link>
+              <Link to="/offers" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-ion transition-colors">Offers</Link>
+              <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-electric transition-colors">About</Link>
+              
+              {isAdmin && (
+                <Link to="/Admin" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-widest text-electric border-t border-gray-800 pt-6 mt-2">
+                  Admin Dashboard
+                </Link>
+              )}
+            </div>
+
+          </div>
+        </>
+      )}
+
       {/* Profile Sidebar */}
       {isProfileSidebarOpen && user && (
         <>
           <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] animate-fadeIn" 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]" 
             onClick={() => setIsProfileSidebarOpen(false)}
           ></div>
-          <div className="fixed top-0 right-0 h-full w-full max-w-sm bg-[#0f1115] border-l border-gray-800 z-[101] shadow-2xl flex flex-col animate-slideInRight">
+          <div className="fixed top-0 right-0 h-full w-full max-w-sm bg-[#0f1115] border-l border-gray-800 z-[101] shadow-2xl flex flex-col">
             
             <div className="p-6 border-b border-gray-800 flex justify-between items-center">
               <h2 className="text-xl font-black uppercase tracking-widest text-white">Command Center</h2>
@@ -205,25 +346,12 @@ export default function Navbar() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between bg-gray-900/50 border border-gray-800 p-4 rounded-xl">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-white mb-1">Visual Mode</p>
-                  <p className="text-[10px] text-gray-500 font-mono">{isLightMode ? 'Daylight Protocol' : 'Midnight Protocol'}</p>
-                </div>
-                <button 
-                  onClick={toggleTheme} 
-                  className={`w-14 h-7 rounded-full p-1 transition-colors relative flex items-center ${!isLightMode ? 'bg-electric' : 'bg-gray-700'}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${!isLightMode ? 'translate-x-7' : 'translate-x-0'}`}></div>
-                </button>
-              </div>
-
               <div className="space-y-3">
                 <button 
                   onClick={() => handleProfileNavigation('dashboard')}
                   className="w-full flex items-center justify-between p-4 bg-gray-900 border border-gray-800 hover:border-electric rounded-xl group transition-all"
                 >
-                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">Overview</span>
+                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">Dossier Overview</span>
                   <svg className="w-4 h-4 text-gray-600 group-hover:text-electric transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
 
@@ -231,7 +359,7 @@ export default function Navbar() {
                   onClick={() => handleProfileNavigation('orders')}
                   className="w-full flex items-center justify-between p-4 bg-gray-900 border border-gray-800 hover:border-electric rounded-xl group transition-all"
                 >
-                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">History</span>
+                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">Deployment Logs</span>
                   <svg className="w-4 h-4 text-gray-600 group-hover:text-electric transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
 
@@ -239,7 +367,7 @@ export default function Navbar() {
                   onClick={() => handleProfileNavigation('settings')}
                   className="w-full flex items-center justify-between p-4 bg-gray-900 border border-gray-800 hover:border-electric rounded-xl group transition-all"
                 >
-                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">Settings</span>
+                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">Configurations</span>
                   <svg className="w-4 h-4 text-gray-600 group-hover:text-electric transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
               </div>
@@ -252,7 +380,7 @@ export default function Navbar() {
                 className="w-full py-4 bg-red-900/10 border border-red-900/30 text-red-500 rounded font-bold uppercase tracking-widest text-xs hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                Log-out
+                Terminate Session
               </button>
             </div>
 

@@ -13,6 +13,7 @@ import Favorites from './pages/Favorites.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import Success from './pages/Success.jsx';
 import Profile from './pages/Profile.jsx';
+import About from './pages/About.jsx';
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
           />
           <Route path="/success" element={<Success />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </div>
     </FavoritesProvider>
