@@ -73,13 +73,16 @@ export default function BundlesTab() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      // Clean the array to ensure we don't send empty strings to the database
+      const cleanBundleIds = newBundle.bundle_ids.filter(id => id && String(id).trim() !== '');
+      
       const payload = { 
         type: 'bundle', 
         title: newBundle.title, 
         description: newBundle.description, 
         image_url: newBundle.image_url, 
         bundle_price: parseFloat(newBundle.bundle_price) || 0, 
-        bundle_ids: newBundle.bundle_ids.filter(id => id !== ''),
+        bundle_ids: cleanBundleIds,
         is_active: newBundle.is_active, 
         expires_at: newBundle.expires_at ? new Date(newBundle.expires_at).toISOString() : null
       };
@@ -99,6 +102,7 @@ export default function BundlesTab() {
       fetchData();
     } catch (error) { 
       setMessage({ type: 'error', text: 'Failed to save bundle.' }); 
+      console.error(error);
     } finally { 
       setIsSubmitting(false); 
       setTimeout(() => setMessage({ type: '', text: '' }), 3000); 
@@ -117,15 +121,41 @@ export default function BundlesTab() {
   };
 
   const handleEditBundle = (bundle) => {
-    const paddedIds = [...bundle.bundle_ids, '', '', ''].slice(0, 3);
+    // 1. Safely extract and format the array of IDs
+    let parsedIds = [];
+    try {
+      if (typeof bundle.bundle_ids === 'string') {
+        parsedIds = JSON.parse(bundle.bundle_ids);
+      } else if (Array.isArray(bundle.bundle_ids)) {
+        parsedIds = bundle.bundle_ids;
+      }
+    } catch (e) {
+      parsedIds = [];
+    }
+    
+    // Force them into strings so the HTML <select> recognizes them perfectly
+    const stringifiedIds = parsedIds.map(id => String(id));
+    const paddedIds = [...stringifiedIds, '', '', ''].slice(0, 3);
+    
+    // 2. Safely extract and timezone-adjust the expiration date
+    let safeDate = '';
+    if (bundle.expires_at) {
+      const d = new Date(bundle.expires_at);
+      if (!isNaN(d.getTime())) {
+        // Adjust for local timezone so it displays correctly in the input
+        const offset = d.getTimezoneOffset() * 60000;
+        safeDate = new Date(d.getTime() - offset).toISOString().slice(0, 16);
+      }
+    }
+
     setNewBundle({
-      title: bundle.title, 
-      description: bundle.description, 
-      image_url: bundle.image_url, 
-      bundle_price: bundle.bundle_price, 
+      title: bundle.title || '', 
+      description: bundle.description || '', 
+      image_url: bundle.image_url || '', 
+      bundle_price: bundle.bundle_price || '', 
       bundle_ids: paddedIds, 
-      is_active: bundle.is_active, 
-      expires_at: bundle.expires_at ? new Date(bundle.expires_at).toISOString().slice(0, 16) : '', 
+      is_active: bundle.is_active ?? true, 
+      expires_at: safeDate, 
       type: 'bundle'
     });
     setEditBundleId(bundle.id);
