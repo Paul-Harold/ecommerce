@@ -184,11 +184,11 @@ export default function Shops() {
                 <div className="flex items-center gap-4 md:gap-6 mb-6 md:mb-8">
                   {getDiscountInfo(featuredProduct) ? (
                     <div className="flex flex-col">
-                      <span className="text-gray-500 line-through text-sm md:text-lg">${featuredProduct.price}</span>
-                      <span className="text-2xl md:text-3xl font-black text-ion">${getDiscountInfo(featuredProduct).newPrice}</span>
+                      <span className="text-gray-500 line-through text-sm md:text-lg">₱{featuredProduct.price}</span>
+                      <span className="text-2xl md:text-3xl font-black text-ion">₱{getDiscountInfo(featuredProduct).newPrice}</span>
                     </div>
                   ) : (
-                    <span className="text-2xl md:text-3xl font-black text-electric">${featuredProduct.price}</span>
+                    <span className="text-2xl md:text-3xl font-black text-electric">₱{featuredProduct.price}</span>
                   )}
                 </div>
 
@@ -350,11 +350,11 @@ export default function Shops() {
                       <div>
                         {discountInfo ? (
                           <div className="flex items-center gap-2 md:gap-3 mt-2 md:mt-4">
-                            <span className="text-gray-500 line-through text-xs md:text-sm font-bold">${product.price}</span>
-                            <span className="text-ion font-black text-lg md:text-xl">${discountInfo.newPrice}</span>
+                            <span className="text-gray-500 line-through text-xs md:text-sm font-bold">₱{product.price}</span>
+                            <span className="text-ion font-black text-lg md:text-xl">₱{discountInfo.newPrice}</span>
                           </div>
                         ) : (
-                          <p className="text-electric font-bold text-base md:text-lg mt-2 md:mt-4">${product.price}</p>
+                          <p className="text-electric font-bold text-base md:text-lg mt-2 md:mt-4">₱{product.price}</p>
                         )}
 
                         {/* Mobile Add to Cart Button (Hidden on Desktop) */}

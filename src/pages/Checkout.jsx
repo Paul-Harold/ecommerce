@@ -31,7 +31,7 @@ export default function Checkout() {
 
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', email: '',
-    address: '', city: '', zip: '', country: 'US',
+    address: '', city: '', zip: '', country: 'PH', // Updated default country to PH
     cardNumber: '', expiry: '', cvc: ''
   });
 
@@ -220,7 +220,8 @@ export default function Checkout() {
     );
   }
 
-  const shipping = 1.99;
+  // Localized Shipping Fee
+  const shipping = 150.00; 
   
   const discountAmount = appliedVoucher ? (calculatedTotal * (appliedVoucher.discount_percent / 100)) : 0;
   const subtotalAfterDiscount = calculatedTotal - discountAmount;
@@ -305,7 +306,7 @@ export default function Checkout() {
                 disabled={isProcessing}
                 className={`w-full py-4 md:py-5 rounded font-black uppercase tracking-widest text-base md:text-lg transition-all ${isProcessing ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-ion text-midnight hover:bg-white shadow-[0_0_20px_rgba(57,255,20,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]'}`}
               >
-                {isProcessing ? 'Processing Transaction...' : `Authorize $${finalTotal.toFixed(2)}`}
+                {isProcessing ? 'Processing Transaction...' : `Authorize ₱${finalTotal.toFixed(2)}`}
               </button>
 
             </form>
@@ -326,7 +327,7 @@ export default function Checkout() {
                       <p className="text-gray-500 text-[10px] md:text-xs font-mono">QTY: {item.quantity || 1}</p>
                     </div>
                     <div className="font-mono text-xs md:text-sm font-bold pt-1">
-                      ${((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
+                      ₱{((parseFloat(item.price) || 0) * (parseInt(item.quantity) || 1)).toFixed(2)}
                     </div>
                   </div>
                 ))}
@@ -365,27 +366,27 @@ export default function Checkout() {
               <div className="border-t border-dashed border-gray-700 pt-4 space-y-2 font-mono text-xs md:text-sm text-gray-400">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${calculatedTotal.toFixed(2)}</span>
+                  <span>₱{calculatedTotal.toFixed(2)}</span>
                 </div>
                 {appliedVoucher && (
                   <div className="flex justify-between text-ion">
                     <span>Discount ({appliedVoucher.discount_percent}%)</span>
-                    <span>-${discountAmount.toFixed(2)}</span>
+                    <span>-₱{discountAmount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span>Estimated Tax (8%)</span>
-                  <span>${tax.toFixed(2)}</span>
+                  <span>₱{tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Standard Shipping</span>
-                  <span>${shipping.toFixed(2)}</span>
+                  <span>₱{shipping.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="border-t border-gray-800 mt-4 pt-4 flex justify-between items-center">
                 <span className="font-bold uppercase tracking-widest text-sm md:text-base">Total Due</span>
-                <span className="text-xl md:text-2xl font-black text-white">${finalTotal.toFixed(2)}</span>
+                <span className="text-xl md:text-2xl font-black text-white">₱{finalTotal.toFixed(2)}</span>
               </div>
             </div>
 

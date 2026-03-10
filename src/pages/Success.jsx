@@ -109,9 +109,9 @@ export default function Success() {
                 <div key={index} className="flex justify-between items-start gap-4">
                   <div className="pr-2 md:pr-4">
                     <p className="text-gray-300 font-bold print:text-black text-xs md:text-sm">{item.name}</p>
-                    <p className="text-gray-500 text-[10px] md:text-xs print:text-gray-600">QTY: {item.quantity || 1} x ${parseFloat(item.price).toFixed(2)}</p>
+                    <p className="text-gray-500 text-[10px] md:text-xs print:text-gray-600">QTY: {item.quantity || 1} x ₱{parseFloat(item.price).toFixed(2)}</p>
                   </div>
-                  <span className="text-gray-400 print:text-gray-800 text-xs md:text-sm shrink-0">${(parseFloat(item.price) * parseInt(item.quantity || 1)).toFixed(2)}</span>
+                  <span className="text-gray-400 print:text-gray-800 text-xs md:text-sm shrink-0">₱{(parseFloat(item.price) * parseInt(item.quantity || 1)).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -121,25 +121,25 @@ export default function Success() {
           <div className="w-full sm:w-2/3 md:w-1/2 ml-auto border-t border-dashed border-gray-700 pt-5 md:pt-6 space-y-2 md:space-y-3 print:border-gray-300">
             <div className="flex justify-between text-gray-400 print:text-gray-600 text-xs md:text-sm">
               <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>₱{subtotal.toFixed(2)}</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between text-ion print:text-black font-bold text-xs md:text-sm">
                 <span>Voucher Applied</span>
-                <span>-${discount.toFixed(2)}</span>
+                <span>-₱{discount.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between text-gray-400 print:text-gray-600 text-xs md:text-sm">
               <span>Tax (8%)</span>
-              <span>${tax.toFixed(2)}</span>
+              <span>₱{tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-gray-400 print:text-gray-600 text-xs md:text-sm">
               <span>Shipping</span>
-              <span>${shipping.toFixed(2)}</span>
+              <span>₱{shipping.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-white font-black text-lg md:text-xl pt-3 md:pt-4 border-t border-gray-800 mt-2 print:border-gray-300 print:text-black">
               <span className="uppercase tracking-widest">Total</span>
-              <span className="text-ion print:text-black">${total.toFixed(2)}</span>
+              <span className="text-ion print:text-black">₱{total.toFixed(2)}</span>
             </div>
           </div>
 

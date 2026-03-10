@@ -149,7 +149,7 @@ export default function Offers() {
                           {bundle.items.map(item => (
                             <div key={item.id} className="flex justify-between items-center bg-gray-900/50 px-2.5 py-2 md:px-3 md:py-2 rounded border border-gray-800">
                               <span className="text-xs md:text-sm text-gray-300 truncate pr-2">[{item.category}] {item.name}</span>
-                              <span className="text-[10px] md:text-xs text-gray-500 shrink-0">${item.price.toFixed(2)}</span>
+                              <span className="text-[10px] md:text-xs text-gray-500 shrink-0">₱{item.price.toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
@@ -157,8 +157,8 @@ export default function Offers() {
                       
                       <div className="flex flex-col sm:flex-row sm:items-end justify-between mt-auto gap-4 sm:gap-0">
                         <div>
-                          <p className="text-gray-500 line-through text-xs md:text-sm font-bold">${bundle.originalValue.toFixed(2)}</p>
-                          <p className="text-ion font-black text-xl md:text-2xl">${parseFloat(bundle.bundle_price).toFixed(2)}</p>
+                          <p className="text-gray-500 line-through text-xs md:text-sm font-bold">₱{bundle.originalValue.toFixed(2)}</p>
+                          <p className="text-ion font-black text-xl md:text-2xl">₱{parseFloat(bundle.bundle_price).toFixed(2)}</p>
                         </div>
                         <button 
                           onClick={() => { 
@@ -210,8 +210,8 @@ export default function Offers() {
                           <h3 className="text-xs md:text-sm font-bold text-white mb-2 line-clamp-1">{product.name}</h3>
                         </div>
                         <div className="flex items-center gap-2 md:gap-3 mt-2 md:mt-4">
-                          <span className="text-gray-500 line-through text-[10px] md:text-xs font-bold">${product.price}</span>
-                          <span className="text-ion font-black text-base md:text-lg">${discountedPrice}</span>
+                          <span className="text-gray-500 line-through text-[10px] md:text-xs font-bold">₱{product.price}</span>
+                          <span className="text-ion font-black text-base md:text-lg">₱{discountedPrice}</span>
                         </div>
                       </div>
                     </div>

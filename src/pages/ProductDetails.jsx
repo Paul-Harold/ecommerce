@@ -160,11 +160,11 @@ export default function ProductDetails() {
             <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-4 md:mb-6">
               {discountInfo ? (
                 <div className="flex items-center gap-3 md:gap-4">
-                  <span className="text-gray-500 line-through text-xl md:text-2xl font-bold">${product.price}</span>
-                  <span className="text-3xl md:text-4xl font-black text-ion">${discountInfo.newPrice}</span>
+                  <span className="text-gray-500 line-through text-xl md:text-2xl font-bold">₱{product.price}</span>
+                  <span className="text-3xl md:text-4xl font-black text-ion">₱{discountInfo.newPrice}</span>
                 </div>
               ) : (
-                <span className="text-3xl md:text-4xl font-black text-white">${product.price}</span>
+                <span className="text-3xl md:text-4xl font-black text-white">₱{product.price}</span>
               )}
               
               <span className="bg-ion/10 text-ion border border-ion/30 px-2.5 py-1 md:px-3 md:py-1 rounded text-[10px] md:text-xs font-bold uppercase tracking-wider md:ml-2">

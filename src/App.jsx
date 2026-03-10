@@ -54,6 +54,7 @@ function App() {
           <Route path="/success" element={<Success />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<About />} />
+          
         </Routes>
       </div>
     </FavoritesProvider>

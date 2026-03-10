@@ -138,7 +138,7 @@ export default function Profile() {
               onClick={() => setActiveTab('favorites')}
               className={`shrink-0 md:w-full text-left px-5 py-3 md:px-6 md:py-3 rounded text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors flex justify-between items-center gap-3 md:gap-0 ${activeTab === 'favorites' ? 'bg-electric text-midnight' : 'text-gray-400 hover:bg-gray-900 hover:text-white'}`}
             >
-              Saved Hardware
+              Favorites
               {favorites.length > 0 && <span className={`px-2 py-0.5 rounded-full text-[9px] md:text-[10px] ${activeTab === 'favorites' ? 'bg-midnight text-electric' : 'bg-gray-800 text-gray-400'}`}>{favorites.length}</span>}
             </button>
             <button 
@@ -220,7 +220,7 @@ export default function Profile() {
                         </div>
                         <div>
                           <p className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-widest mb-1">Total Value</p>
-                          <p className="font-bold text-ion text-xs md:text-sm">${parseFloat(order.total_amount).toFixed(2)}</p>
+                          <p className="font-bold text-ion text-xs md:text-sm">₱{parseFloat(order.total_amount).toFixed(2)}</p>
                         </div>
                         <div className="flex items-center">
                           <span className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 md:px-3 md:py-1.5 rounded border ${getStatusColor(order.status || 'Pending')}`}>
@@ -252,7 +252,7 @@ export default function Profile() {
                                   </div>
                                 </div>
                                 <p className="text-xs md:text-sm font-bold font-mono text-gray-300 shrink-0">
-                                  ${(parseFloat(item.price_at_purchase) * parseInt(item.quantity)).toFixed(2)}
+                                  ₱{(parseFloat(item.price_at_purchase) * parseInt(item.quantity)).toFixed(2)}
                                 </p>
                               </div>
                             ))
@@ -309,7 +309,7 @@ export default function Profile() {
                           <p className="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">{product.category}</p>
                           <h3 className="text-xs md:text-sm font-bold text-white mb-2 line-clamp-1">{product.name}</h3>
                         </div>
-                        <p className="text-ion font-bold text-sm">${parseFloat(product.price).toFixed(2)}</p>
+                        <p className="text-ion font-bold text-sm">₱{parseFloat(product.price).toFixed(2)}</p>
                       </div>
                     </div>
                   ))}
@@ -379,7 +379,7 @@ export default function Profile() {
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5 md:mb-1">Comm-Link (Email)</p>
-                      <p className="text-white font-mono text-xs md:text-base">support@midnight.com</p>
+                      <p className="text-white font-mono text-xs md:text-base">paulharold.batiles@gmail.com</p>
                     </div>
                   </div>
                   
@@ -389,7 +389,7 @@ export default function Profile() {
                     </div>
                     <div>
                       <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5 md:mb-1">Direct Line</p>
-                      <p className="text-white font-mono text-xs md:text-base">1-800-MIDNIGHT</p>
+                      <p className="text-white font-mono text-xs md:text-base">09205278696</p>
                     </div>
                   </div>
                 </div>

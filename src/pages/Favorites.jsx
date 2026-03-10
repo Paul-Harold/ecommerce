@@ -104,11 +104,11 @@ export default function Favorites() {
                     
                     {discountInfo ? (
                       <div className="flex items-center gap-2 md:gap-3 mt-2 md:mt-4">
-                        <span className="text-gray-500 line-through text-xs md:text-sm font-bold">${product.price}</span>
-                        <span className="text-ion font-black text-lg md:text-xl">${discountInfo.newPrice}</span>
+                        <span className="text-gray-500 line-through text-xs md:text-sm font-bold">₱{product.price}</span>
+                        <span className="text-ion font-black text-lg md:text-xl">₱{discountInfo.newPrice}</span>
                       </div>
                     ) : (
-                      <p className="text-electric font-bold text-base md:text-lg mt-2 md:mt-4">${product.price}</p>
+                      <p className="text-electric font-bold text-base md:text-lg mt-2 md:mt-4">₱{product.price}</p>
                     )}
                   </div>
 

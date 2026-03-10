@@ -138,11 +138,11 @@ export default function CartMenu() {
                       {/* Show slashed price if item has individual markdown */}
                       {itemMarkdown > 0 ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-500 line-through text-[10px]">${rawTotal.toFixed(2)}</span>
-                          <span className="text-ion font-bold text-sm">${effectiveTotal.toFixed(2)}</span>
+                          <span className="text-gray-500 line-through text-[10px]">₱{rawTotal.toFixed(2)}</span>
+                          <span className="text-ion font-bold text-sm">₱{effectiveTotal.toFixed(2)}</span>
                         </div>
                       ) : (
-                        <p className="text-white font-bold text-sm">${rawTotal.toFixed(2)}</p>
+                        <p className="text-white font-bold text-sm">₱{rawTotal.toFixed(2)}</p>
                       )}
                     </div>
                   </div>
@@ -164,7 +164,7 @@ export default function CartMenu() {
             <div className="space-y-2 mb-6">
               <div className="flex items-center justify-between">
                 <span className="text-gray-400 uppercase tracking-widest text-sm font-bold">Subtotal</span>
-                <span className="text-white font-bold">${subtotal.toFixed(2)}</span>
+                <span className="text-white font-bold">₱{subtotal.toFixed(2)}</span>
               </div>
               
               {activePromo && globalDiscountAmount > 0 && (
@@ -172,13 +172,13 @@ export default function CartMenu() {
                   <span className="uppercase tracking-widest text-sm font-black line-clamp-1 pr-4">
                     {activePromo.title} ({activePromo.discount_percent}%)
                   </span>
-                  <span className="font-black whitespace-nowrap">-${globalDiscountAmount.toFixed(2)}</span>
+                  <span className="font-black whitespace-nowrap">-₱{globalDiscountAmount.toFixed(2)}</span>
                 </div>
               )}
 
               <div className="flex items-center justify-between pt-2 border-t border-gray-800/50">
                 <span className="text-gray-300 uppercase tracking-widest text-sm font-black">Total</span>
-                <span className="text-2xl font-black text-electric">${finalTotal.toFixed(2)}</span>
+                <span className="text-2xl font-black text-electric">₱{finalTotal.toFixed(2)}</span>
               </div>
             </div>
             
