@@ -31,7 +31,7 @@ export default function Checkout() {
 
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', email: '',
-    address: '', city: '', zip: '', country: 'PH', // Updated default country to PH
+    address: '', city: '', zip: '', country: 'PH',
     cardNumber: '', expiry: '', cvc: ''
   });
 
@@ -79,7 +79,6 @@ export default function Checkout() {
     setVoucherError('');
     setVoucherMessage('');
     
-    // Convert to uppercase only on submission to prevent mobile keyboard glitches
     const normalizedCode = voucherCode.trim().toUpperCase();
     if (!normalizedCode) return;
 
@@ -143,10 +142,15 @@ export default function Checkout() {
     setError('');
 
     try {
-      // STEP 1: Insert the main order record
+      // 🚨 NEW FIX: Grab the currently logged-in operative's ID
+      const { data: authData } = await supabase.auth.getUser();
+      const currentUserId = authData?.user?.id || null;
+
+      // STEP 1: Insert the main order record WITH the user_id attached
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
+          user_id: currentUserId, // Binds this order directly to the user's account
           customer_email: formData.email,
           customer_first_name: formData.firstName,
           customer_last_name: formData.lastName,
@@ -166,7 +170,6 @@ export default function Checkout() {
 
       if (orderError) throw orderError;
 
-  
       const orderItemsPayload = activeCart.map(item => ({
         order_id: orderData.id,
         product_name: item.name,
