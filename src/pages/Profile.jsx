@@ -44,20 +44,21 @@ export default function Profile() {
         fullName: session.user.user_metadata?.full_name || ''
       }));
 
-      fetchOrders(session.user.email);
+      // 🚨 STRICT AUTH FETCH: Passing the UUID instead of the email
+      fetchOrders(session.user.id);
     };
 
     checkAuthAndFetchData();
   }, [navigate]);
 
-  const fetchOrders = async (email) => {
+  // 🚨 Updated to accept and filter strictly by userId
+  const fetchOrders = async (userId) => {
     setIsFetchingOrders(true);
     try {
-      // Relational join to fetch the linked order_items
       const { data, error } = await supabase
         .from('orders')
         .select('*, order_items(*)')
-        .eq('customer_email', email)
+        .eq('user_id', userId) // Binds strictly to the authenticated account
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -119,7 +120,7 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Navigation - Horizontal on Mobile, Vertical on Desktop */}
+          {/* Navigation */}
           <nav className="flex flex-row md:flex-col gap-2 md:gap-1 overflow-x-auto pb-2 md:pb-0 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <button 
               onClick={() => setActiveTab('dashboard')}
@@ -231,13 +232,10 @@ export default function Profile() {
                       
                       <div className="p-4 md:p-6">
                         <div className="space-y-3 md:space-y-4">
-                          {/* Rendering the joined order_items array directly */}
                           {order.order_items && order.order_items.length > 0 ? (
                             order.order_items.map((item, idx) => (
                               <div key={idx} className="flex items-center justify-between gap-3 md:gap-4">
                                 <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
-                                  
-                                  {/* RENDER THE IMAGE URL OR FALLBACK */}
                                   {item.image_url ? (
                                     <img src={item.image_url} alt={item.product_name} className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded bg-gray-900 border border-gray-800 object-contain p-1" />
                                   ) : (
@@ -245,7 +243,6 @@ export default function Profile() {
                                       <span className="text-gray-700 text-[10px] md:text-xs font-bold tracking-widest">GEAR</span>
                                     </div>
                                   )}
-
                                   <div className="min-w-0">
                                     <p className="text-xs md:text-sm font-bold text-white line-clamp-1">{item.product_name}</p>
                                     <p className="text-[10px] md:text-xs text-gray-500 font-mono">QTY: {item.quantity}</p>
