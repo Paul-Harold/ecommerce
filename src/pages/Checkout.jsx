@@ -24,8 +24,8 @@ export default function Checkout() {
   const [voucherMessage, setVoucherMessage] = useState('');
 
   const [supportInfo, setSupportInfo] = useState({
-    email: 'support@midnight.com',
-    phone: '1-800-MIDNIGHT',
+    email: 'paulharold.batiles@gmail.com.com',
+    phone: '09205278696',
     policy: '30-day money-back guarantee. All hardware must be returned in original classified packaging.'
   });
 
@@ -315,7 +315,7 @@ export default function Checkout() {
           <div className="lg:col-span-5 space-y-6 md:space-y-8 order-1 lg:order-2">
             
             {/* Manifest / Cart Summary */}
-            <div className="bg-[#0B0D10] border border-gray-800 rounded-xl p-5 md:p-8 lg:sticky lg:top-28">
+            <div className="bg-[#0B0D10] border border-gray-800 rounded-xl p-5 md:p-8 lg:top-28">
               <h3 className="text-lg md:text-xl font-bold uppercase tracking-widest mb-4 md:mb-6 border-b border-gray-800 pb-3 md:pb-4">Manifest</h3>
               
               <div className="space-y-4 mb-6 max-h-[300px] md:max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
