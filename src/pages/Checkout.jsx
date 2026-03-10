@@ -221,7 +221,7 @@ export default function Checkout() {
   }
 
   // Localized Shipping Fee
-  const shipping = 150.00; 
+  const shipping = 59.00; 
   
   const discountAmount = appliedVoucher ? (calculatedTotal * (appliedVoucher.discount_percent / 100)) : 0;
   const subtotalAfterDiscount = calculatedTotal - discountAmount;
