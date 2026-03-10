@@ -78,10 +78,13 @@ export default function Checkout() {
     e.preventDefault();
     setVoucherError('');
     setVoucherMessage('');
-    if (!voucherCode.trim()) return;
+    
+    // Convert to uppercase only on submission to prevent mobile keyboard glitches
+    const normalizedCode = voucherCode.trim().toUpperCase();
+    if (!normalizedCode) return;
 
     try {
-      const { data, error: vError } = await supabase.from('vouchers').select('*').ilike('code', voucherCode.trim()).single();
+      const { data, error: vError } = await supabase.from('vouchers').select('*').ilike('code', normalizedCode).single();
 
       if (vError || !data) {
         setVoucherError('Invalid voucher code.');
@@ -140,6 +143,7 @@ export default function Checkout() {
     setError('');
 
     try {
+      // STEP 1: Insert the main order record
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
@@ -162,13 +166,16 @@ export default function Checkout() {
 
       if (orderError) throw orderError;
 
+  
       const orderItemsPayload = activeCart.map(item => ({
         order_id: orderData.id,
         product_name: item.name,
         quantity: item.quantity || 1,
-        price_at_purchase: parseFloat(item.price) || 0
+        price_at_purchase: parseFloat(item.price) || 0,
+        image_url: item.image
       }));
 
+      // STEP 3: Insert into the order_items table
       const { error: itemsError } = await supabase.from('order_items').insert(orderItemsPayload);
       if (itemsError) throw itemsError;
 
@@ -192,7 +199,7 @@ export default function Checkout() {
       });
 
     } catch (err) {
-      console.error(err);
+      console.error("Transmission Error:", err);
       setError('Transaction failed. Secure connection lost.');
       setIsProcessing(false);
     }
@@ -329,7 +336,17 @@ export default function Checkout() {
                 <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2">Discount Authorization Code</label>
                 {!appliedVoucher ? (
                   <div className="flex gap-2">
-                    <input type="text" value={voucherCode} onChange={e => setVoucherCode(e.target.value.toUpperCase())} placeholder="ENTER CODE" className="flex-1 bg-gray-900 border border-gray-700 rounded px-3 md:px-4 py-2.5 md:py-3 text-white focus:outline-none focus:border-electric transition-colors font-mono uppercase text-xs md:text-sm" />
+                    <input 
+                      type="text" 
+                      value={voucherCode} 
+                      onChange={e => setVoucherCode(e.target.value)} 
+                      placeholder="ENTER CODE" 
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="characters"
+                      spellCheck="false"
+                      className="flex-1 bg-gray-900 border border-gray-700 rounded px-3 md:px-4 py-2.5 md:py-3 text-white focus:outline-none focus:border-electric transition-colors font-mono uppercase text-xs md:text-sm" 
+                    />
                     <button onClick={handleApplyVoucher} className="bg-gray-800 text-white hover:bg-white hover:text-black font-bold uppercase tracking-widest text-[10px] md:text-xs px-4 md:px-6 rounded transition-colors">Apply</button>
                   </div>
                 ) : (

@@ -53,9 +53,10 @@ export default function Profile() {
   const fetchOrders = async (email) => {
     setIsFetchingOrders(true);
     try {
+      // Relational join to fetch the linked order_items
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select('*, order_items(*)')
         .eq('customer_email', email)
         .order('created_at', { ascending: false });
 
@@ -230,31 +231,41 @@ export default function Profile() {
                       
                       <div className="p-4 md:p-6">
                         <div className="space-y-3 md:space-y-4">
-                          {order.items && order.items.map((item, idx) => (
-                            <div key={idx} className="flex items-center justify-between gap-3 md:gap-4">
-                              <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
-                                {item.image ? (
-                                  <img src={item.image} alt={item.name} className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded bg-gray-900 border border-gray-800 object-contain p-1" />
-                                ) : (
-                                  <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded bg-gray-900 border border-gray-800 flex items-center justify-center">
-                                    <span className="text-gray-700 text-[10px] md:text-xs font-bold">N/A</span>
+                          {/* Rendering the joined order_items array directly */}
+                          {order.order_items && order.order_items.length > 0 ? (
+                            order.order_items.map((item, idx) => (
+                              <div key={idx} className="flex items-center justify-between gap-3 md:gap-4">
+                                <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                                  
+                                  {/* RENDER THE IMAGE URL OR FALLBACK */}
+                                  {item.image_url ? (
+                                    <img src={item.image_url} alt={item.product_name} className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded bg-gray-900 border border-gray-800 object-contain p-1" />
+                                  ) : (
+                                    <div className="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded bg-gray-900 border border-gray-800 flex items-center justify-center">
+                                      <span className="text-gray-700 text-[10px] md:text-xs font-bold tracking-widest">GEAR</span>
+                                    </div>
+                                  )}
+
+                                  <div className="min-w-0">
+                                    <p className="text-xs md:text-sm font-bold text-white line-clamp-1">{item.product_name}</p>
+                                    <p className="text-[10px] md:text-xs text-gray-500 font-mono">QTY: {item.quantity}</p>
                                   </div>
-                                )}
-                                <div className="min-w-0">
-                                  <p className="text-xs md:text-sm font-bold text-white line-clamp-1">{item.name}</p>
-                                  <p className="text-[10px] md:text-xs text-gray-500 font-mono">QTY: {item.quantity}</p>
                                 </div>
+                                <p className="text-xs md:text-sm font-bold font-mono text-gray-300 shrink-0">
+                                  ${(parseFloat(item.price_at_purchase) * parseInt(item.quantity)).toFixed(2)}
+                                </p>
                               </div>
-                              <p className="text-xs md:text-sm font-bold font-mono text-gray-300 shrink-0">
-                                ${(parseFloat(item.price) * parseInt(item.quantity)).toFixed(2)}
-                              </p>
+                            ))
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <span className="text-gray-500 font-mono text-xs">Hardware details encrypted or unavailable for this deployment.</span>
                             </div>
-                          ))}
+                          )}
                         </div>
 
                         <div className="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-dashed border-gray-800">
                           <p className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-widest mb-1 md:mb-2">Delivery Coordinates</p>
-                          <p className="text-xs md:text-sm text-gray-400 font-mono whitespace-pre-wrap">{order.shipping_address}</p>
+                          <p className="text-xs md:text-sm text-gray-400 font-mono whitespace-pre-wrap">{order.shipping_address || 'Address on file'}</p>
                         </div>
                       </div>
                     </div>
