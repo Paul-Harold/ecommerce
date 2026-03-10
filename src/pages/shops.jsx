@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import HeartIcon from '../components/HeartIcon.jsx';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../libs/supabase.js';
@@ -9,7 +9,6 @@ export default function Shops() {
   const navigate = useNavigate(); 
   const location = useLocation();
   
-  // Pulling in addToCart and setIsCartOpen from the context
   const { activePromo, addToCart, setIsCartOpen } = useCart(); 
   const { toggleFavorite, isFavorite } = useFavorites();
   
@@ -18,10 +17,16 @@ export default function Shops() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [sortBy, setSortBy] = useState('Featured');
   
+  // Carousel State & Refs for Dragging/Swiping
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+  
   const [cmsContent, setCmsContent] = useState({
     hero_title: 'Midnight <span class="text-electric">Arsenal</span>',
     hero_subtitle: 'Equip yourself with precision-engineered hardware.',
-    flagship_id: null
+    carousel_ids: []
   });
 
   const queryParams = new URLSearchParams(location.search);
@@ -40,7 +45,7 @@ export default function Shops() {
           setCmsContent({
             hero_title: cmsData.hero_title || 'Midnight <span class="text-electric">Arsenal</span>',
             hero_subtitle: cmsData.hero_subtitle || 'Equip yourself with precision-engineered hardware.',
-            flagship_id: cmsData.content_data?.flagship_id || null
+            carousel_ids: cmsData.content_data?.carousel_ids || []
           });
         }
 
@@ -64,8 +69,7 @@ export default function Shops() {
     if (!createdAt) return false;
     const addedDate = new Date(createdAt);
     const now = new Date();
-    const diffInTime = now.getTime() - addedDate.getTime();
-    const diffInDays = diffInTime / (1000 * 3600 * 24);
+    const diffInDays = (now.getTime() - addedDate.getTime()) / (1000 * 3600 * 24);
     return diffInDays <= 14; 
   };
 
@@ -94,14 +98,11 @@ export default function Shops() {
         percent: finalDiscount
       };
     }
-
     return null;
   };
 
-  // Direct Add to Cart handler
   const handleAddToCart = (e, product) => {
-    e.stopPropagation(); // Prevents the card click from navigating away
-    
+    e.stopPropagation(); 
     const discountInfo = getDiscountInfo(product);
     const finalPrice = discountInfo ? parseFloat(discountInfo.newPrice) : parseFloat(product.price);
 
@@ -112,8 +113,6 @@ export default function Shops() {
       image: product.image,
       quantity: 1
     });
-    
-    // Slide the cart open to show visual confirmation
     setIsCartOpen(true);
   };
 
@@ -124,7 +123,6 @@ export default function Shops() {
     const matchesSearch = !searchQuery || 
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
       item.category.toLowerCase().includes(searchQuery.toLowerCase());
-      
     return matchesCategory && matchesSearch;
   });
 
@@ -135,14 +133,58 @@ export default function Shops() {
     return 0; 
   });
 
-  let featuredProduct = products.length > 0 ? products[0] : null;
-  
-  if (cmsContent.flagship_id) {
-    const overrideProduct = products.find(p => String(p.id) === String(cmsContent.flagship_id));
-    if (overrideProduct) {
-      featuredProduct = overrideProduct;
+  // --- CAROUSEL LOGIC & CONTROLS ---
+  let carouselProducts = [];
+  if (products.length > 0) {
+    if (cmsContent.carousel_ids && cmsContent.carousel_ids.length > 0) {
+      carouselProducts = cmsContent.carousel_ids
+        .map(id => products.find(p => String(p.id) === String(id)))
+        .filter(Boolean);
+      
+      if (carouselProducts.length < 3) {
+        const pickedIds = carouselProducts.map(p => p.id);
+        const fillers = products.filter(p => !pickedIds.includes(p.id)).slice(0, 3 - carouselProducts.length);
+        carouselProducts = [...carouselProducts, ...fillers];
+      }
+    } else {
+      carouselProducts = products.slice(0, 3);
     }
   }
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % carouselProducts.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + carouselProducts.length) % carouselProducts.length);
+
+  // Auto-slide effect (Pauses on hover/interaction)
+  useEffect(() => {
+    if (carouselProducts.length <= 1 || isPaused) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % carouselProducts.length);
+    }, 5000); 
+    return () => clearInterval(timer);
+  }, [carouselProducts.length, isPaused]);
+
+  // Swipe & Drag Handlers
+  const handleDragStart = (e) => {
+    touchStartX.current = e.touches ? e.touches[0].clientX : e.clientX;
+  };
+  
+  const handleDragMove = (e) => {
+    if (!touchStartX.current) return;
+    touchEndX.current = e.touches ? e.touches[0].clientX : e.clientX;
+  };
+  
+  const handleDragEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe) nextSlide();
+    if (isRightSwipe) prevSlide();
+    
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   return (
     <div className="min-h-screen bg-midnight text-white flex flex-col">
@@ -164,67 +206,128 @@ export default function Shops() {
             )}
           </div>
 
-          {/* Featured Product */}
-          {!isLoading && featuredProduct && activeCategory === 'All' && !searchQuery && (
+          {/* Dynamic Interactive Carousel Section */}
+          {!isLoading && carouselProducts.length > 0 && activeCategory === 'All' && !searchQuery && (
             <div 
-              onClick={() => navigate(`/product/${featuredProduct.id}`)}
-              className="mb-10 md:mb-16 group relative bg-gradient-to-r from-gray-900 to-[#0f1115] border border-electric/30 rounded-2xl overflow-hidden cursor-pointer shadow-[0_0_40px_rgba(64,224,255,0.1)] md:hover:shadow-[0_0_60px_rgba(64,224,255,0.2)] transition-all duration-500 flex flex-col md:flex-row items-center"
+              className="mb-10 md:mb-16 relative rounded-2xl overflow-hidden border border-electric/30 shadow-[0_0_40px_rgba(64,224,255,0.1)] bg-gradient-to-r from-gray-900 to-[#0f1115]"
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+              onTouchStart={handleDragStart}
+              onTouchMove={handleDragMove}
+              onTouchEnd={handleDragEnd}
+              onMouseDown={handleDragStart}
+              onMouseMove={handleDragMove}
+              onMouseUp={handleDragEnd}
+              onMouseLeaveCapture={handleDragEnd} // Failsafe if cursor leaves component while dragging
             >
-              <div className="p-6 sm:p-8 md:p-16 md:w-1/2 flex flex-col justify-center relative z-10 order-2 md:order-1 w-full">
-                <div className="inline-block px-3 md:px-4 py-1 bg-electric/10 text-electric border border-electric/30 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest mb-4 md:mb-6 w-max">
-                  Featured Flagship
-                </div>
-                <h2 className="text-2xl sm:text-3xl md:text-5xl font-black uppercase tracking-widest text-white mb-3 md:mb-4 line-clamp-2 leading-tight">
-                  {featuredProduct.name}
-                </h2>
-                <p className="text-gray-400 text-sm md:text-base mb-6 md:mb-8 max-w-md line-clamp-3">
-                  {featuredProduct.description || "Experience uncompromising performance with our flagship gear."}
-                </p>
-                
-                <div className="flex items-center gap-4 md:gap-6 mb-6 md:mb-8">
-                  {getDiscountInfo(featuredProduct) ? (
-                    <div className="flex flex-col">
-                      <span className="text-gray-500 line-through text-sm md:text-lg">₱{featuredProduct.price}</span>
-                      <span className="text-2xl md:text-3xl font-black text-ion">₱{getDiscountInfo(featuredProduct).newPrice}</span>
-                    </div>
-                  ) : (
-                    <span className="text-2xl md:text-3xl font-black text-electric">₱{featuredProduct.price}</span>
-                  )}
-                </div>
+              
+              {/* Carousel Track */}
+              <div 
+                className="flex transition-transform duration-700 ease-in-out cursor-grab active:cursor-grabbing"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {carouselProducts.map((slideProduct, index) => (
+                  <div 
+                    key={slideProduct.id}
+                    className="w-full shrink-0 flex flex-col md:flex-row items-center md:hover:shadow-[0_0_60px_rgba(64,224,255,0.2)] transition-shadow duration-500 group select-none"
+                  >
+                    <div className="p-6 sm:p-8 md:p-16 md:w-1/2 flex flex-col justify-center relative z-10 order-2 md:order-1 w-full">
+                      <div className="inline-block px-3 md:px-4 py-1 bg-electric/10 text-electric border border-electric/30 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest mb-4 md:mb-6 w-max">
+                        {index === 0 && cmsContent.carousel_ids.length > 0 ? "Featured Flagship" : "Trending Gear"}
+                      </div>
+                      <h2 className="text-2xl sm:text-3xl md:text-5xl font-black uppercase tracking-widest text-white mb-3 md:mb-4 line-clamp-2 leading-tight">
+                        {slideProduct.name}
+                      </h2>
+                      <p className="text-gray-400 text-sm md:text-base mb-6 md:mb-8 max-w-md line-clamp-3">
+                        {slideProduct.description || "Experience uncompromising performance with our top-tier gear."}
+                      </p>
+                      
+                      <div className="flex items-center gap-4 md:gap-6 mb-6 md:mb-8">
+                        {getDiscountInfo(slideProduct) ? (
+                          <div className="flex flex-col">
+                            <span className="text-gray-500 line-through text-sm md:text-lg">₱{slideProduct.price}</span>
+                            <span className="text-2xl md:text-3xl font-black text-ion">₱{getDiscountInfo(slideProduct).newPrice}</span>
+                          </div>
+                        ) : (
+                          <span className="text-2xl md:text-3xl font-black text-electric">₱{slideProduct.price}</span>
+                        )}
+                      </div>
 
-                <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 w-full">
+                      <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 w-full">
+                        <button 
+                          onClick={(e) => handleAddToCart(e, slideProduct)}
+                          className="w-full sm:w-auto justify-center bg-electric text-midnight font-bold py-3.5 md:py-3 px-8 rounded hover:bg-white transition-all duration-300 uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(64,224,255,0.4)] text-xs md:text-sm"
+                        >
+                          Add to Cart
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/product/${slideProduct.id}`);
+                          }}
+                          className="w-full sm:w-auto justify-center bg-transparent border border-gray-600 md:border-white text-white font-bold py-3.5 md:py-3 px-8 rounded hover:bg-white hover:text-midnight transition-all duration-300 uppercase tracking-wider flex items-center gap-2 text-xs md:text-sm"
+                        >
+                          View Specs
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="md:w-1/2 h-56 sm:h-64 md:h-[400px] w-full relative order-1 md:order-2 bg-[#0B0D10] flex items-center justify-center p-6 md:p-8 pointer-events-none">
+                      <div className="absolute inset-0 bg-electric/5 md:group-hover:bg-electric/10 transition-colors duration-500"></div>
+                      <img 
+                        src={slideProduct.image} 
+                        alt={slideProduct.name} 
+                        className="max-h-full max-w-full object-contain relative z-10 transition-transform duration-700 md:group-hover:scale-110 drop-shadow-[0_0_30px_rgba(64,224,255,0.15)]"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Navigation Arrows */}
+              {carouselProducts.length > 1 && (
+                <>
                   <button 
-                    onClick={(e) => handleAddToCart(e, featuredProduct)}
-                    className="w-full sm:w-auto justify-center bg-electric text-midnight font-bold py-3.5 md:py-3 px-8 rounded hover:bg-white transition-all duration-300 uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(64,224,255,0.4)] text-xs md:text-sm"
+                    onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+                    className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-electric border border-gray-700 hover:border-electric text-white hover:text-midnight p-2 md:p-3 rounded-full transition-all duration-300 z-20 backdrop-blur-sm shadow-lg"
+                    aria-label="Previous Slide"
                   >
-                    Add to Cart
+                    <svg className="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   </button>
                   <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/product/${featuredProduct.id}`);
-                    }}
-                    className="w-full sm:w-auto justify-center bg-transparent border border-gray-600 md:border-white text-white font-bold py-3.5 md:py-3 px-8 rounded hover:bg-white hover:text-midnight transition-all duration-300 uppercase tracking-wider flex items-center gap-2 text-xs md:text-sm"
+                    onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+                    className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-electric border border-gray-700 hover:border-electric text-white hover:text-midnight p-2 md:p-3 rounded-full transition-all duration-300 z-20 backdrop-blur-sm shadow-lg"
+                    aria-label="Next Slide"
                   >
-                    View Specs
+                    <svg className="w-4 h-4 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </button>
+                </>
+              )}
+
+              {/* Carousel Navigation Dots */}
+              {carouselProducts.length > 1 && (
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20 md:justify-start md:left-16">
+                  {carouselProducts.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCurrentSlide(idx);
+                      }}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        currentSlide === idx ? 'w-8 bg-electric' : 'w-2 bg-gray-600 hover:bg-gray-400'
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
                 </div>
-              </div>
-              <div className="md:w-1/2 h-56 sm:h-64 md:h-[400px] w-full relative order-1 md:order-2 bg-[#0B0D10] flex items-center justify-center p-6 md:p-8">
-                <div className="absolute inset-0 bg-electric/5 md:group-hover:bg-electric/10 transition-colors duration-500"></div>
-                <img 
-                  src={featuredProduct.image} 
-                  alt={featuredProduct.name} 
-                  className="max-h-full max-w-full object-contain relative z-10 transition-transform duration-700 md:group-hover:scale-110 drop-shadow-[0_0_30px_rgba(64,224,255,0.15)]"
-                />
-              </div>
+              )}
             </div>
           )}
 
           {/* Filtering and Sorting Bar */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-gray-800 pb-4 md:pb-6 mb-8 md:mb-12 gap-4 md:gap-6">
             
-            {/* Scrollable Mobile Categories */}
             <div className="flex flex-row overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 gap-2 md:gap-3 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {categories.map((cat) => (
                 <button
@@ -277,7 +380,6 @@ export default function Shops() {
           ) : sortedAndFilteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
               {sortedAndFilteredProducts.map((product) => {
-                
                 const discountInfo = getDiscountInfo(product);
 
                 return (
@@ -321,7 +423,6 @@ export default function Shops() {
                         />
                       </button>
                       
-                      {/* Hover Overlay - Desktop Only */}
                       <div className="hidden md:flex absolute inset-0 bg-black/60 flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
                         <button 
                           onClick={(e) => handleAddToCart(e, product)}
@@ -357,7 +458,6 @@ export default function Shops() {
                           <p className="text-electric font-bold text-base md:text-lg mt-2 md:mt-4">₱{product.price}</p>
                         )}
 
-                        {/* Mobile Add to Cart Button (Hidden on Desktop) */}
                         <button 
                           onClick={(e) => handleAddToCart(e, product)}
                           className="md:hidden w-full mt-4 bg-gray-800/50 text-white border border-gray-700 hover:bg-electric hover:text-midnight hover:border-electric font-bold py-2.5 rounded uppercase tracking-widest text-[10px] active:bg-electric active:text-midnight transition-colors flex items-center justify-center gap-2"

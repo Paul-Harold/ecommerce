@@ -9,20 +9,18 @@ export default function PagesTab() {
   
   const [pageContent, setPageContent] = useState({ 
     hero_title: '', hero_subtitle: '', hero_image_url: '',
-    featured_ids: ['', '', ''], support_email: '', support_phone: '', return_policy: '',
-    flagship_id: '', offers_terms: ''
+    featured_ids: ['', '', ''], carousel_ids: ['', '', ''], support_email: '', support_phone: '', return_policy: '',
+    offers_terms: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // Fetch products once on mount (needed for selecting featured gear)
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // Fetch page content whenever the active page tab changes
   useEffect(() => {
     fetchPageContent(activePage);
   }, [activePage]);
@@ -41,7 +39,7 @@ export default function PagesTab() {
     try {
       const { data, error } = await supabase.from('site_content').select('*').eq('page_name', pageName).maybeSingle();
       
-      if (error && error.code !== 'PGRST116') throw error; // Ignore "no rows returned" error
+      if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
         setPageContent({
@@ -49,18 +47,17 @@ export default function PagesTab() {
           hero_subtitle: data.hero_subtitle || '', 
           hero_image_url: data.hero_image_url || '',
           featured_ids: data.content_data?.featured_ids || ['', '', ''],
+          carousel_ids: data.content_data?.carousel_ids || ['', '', ''],
           support_email: data.content_data?.support_email || 'support@midnight.com', 
           support_phone: data.content_data?.support_phone || '1-800-MIDNIGHT', 
           return_policy: data.content_data?.return_policy || '30-day money-back guarantee.',
-          flagship_id: data.content_data?.flagship_id || '',
           offers_terms: data.content_data?.offers_terms || 'Standard terms and conditions apply to all promotions.'
         });
       } else {
-        // Reset form if no data exists for this page yet
         setPageContent({ 
           hero_title: '', hero_subtitle: '', hero_image_url: '', 
-          featured_ids: ['', '', ''], support_email: '', support_phone: '', 
-          return_policy: '', flagship_id: '', offers_terms: '' 
+          featured_ids: ['', '', ''], carousel_ids: ['', '', ''], support_email: '', support_phone: '', 
+          return_policy: '', offers_terms: '' 
         });
       }
     } catch (error) {
@@ -72,6 +69,12 @@ export default function PagesTab() {
     const newIds = [...pageContent.featured_ids];
     newIds[index] = value;
     setPageContent({ ...pageContent, featured_ids: newIds });
+  };
+
+  const handleCarouselSelection = (index, value) => {
+    const newIds = [...pageContent.carousel_ids];
+    newIds[index] = value;
+    setPageContent({ ...pageContent, carousel_ids: newIds });
   };
 
   const handleFileUpload = async (event) => {
@@ -104,10 +107,9 @@ export default function PagesTab() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Prepare the JSON payload based on which page we are editing
     let dynamicContentData = {};
     if (activePage === 'home') dynamicContentData = { featured_ids: pageContent.featured_ids.filter(id => id !== '') };
-    else if (activePage === 'shop') dynamicContentData = { flagship_id: pageContent.flagship_id };
+    else if (activePage === 'shop') dynamicContentData = { carousel_ids: pageContent.carousel_ids.filter(id => id !== '') };
     else if (activePage === 'offers') dynamicContentData = { offers_terms: pageContent.offers_terms };
     else if (activePage === 'global') dynamicContentData = { support_email: pageContent.support_email, support_phone: pageContent.support_phone, return_policy: pageContent.return_policy };
 
@@ -155,7 +157,6 @@ export default function PagesTab() {
       
       <form onSubmit={handleCmsSubmit} className="space-y-6 lg:space-y-8">
         
-        {/* Header Section fields apply to all pages EXCEPT global */}
         {activePage !== 'global' && (
           <div className="bg-[#0f1115] border border-gray-800 p-5 lg:p-8 rounded-xl space-y-4 lg:space-y-6">
             <h3 className="text-electric font-bold text-sm lg:text-base uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Header Section</h3>
@@ -195,18 +196,22 @@ export default function PagesTab() {
           </div>
         )}
 
-        {/* Shop Page Specifics */}
+        {/* Shop Page Specifics (NEW CAROUSEL CONTROL) */}
         {activePage === 'shop' && (
           <div className="bg-[#0f1115] border border-gray-800 p-5 lg:p-8 rounded-xl space-y-4 lg:space-y-6">
-            <h3 className="text-ion font-bold text-sm lg:text-base uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Shop Configuration</h3>
-            <div>
-              <label className="block text-gray-400 text-[10px] lg:text-xs font-bold uppercase tracking-widest mb-1 lg:mb-2">Featured Flagship Product Override</label>
-              <select value={pageContent.flagship_id} onChange={e => setPageContent({...pageContent, flagship_id: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded px-3 lg:px-4 py-2.5 lg:py-3 text-white focus:outline-none focus:border-ion transition-colors cursor-pointer text-xs lg:text-sm">
-                <option value="">-- Auto-select Newest Gear --</option>
-                {productsList.map(product => (<option key={product.id} value={product.id}>[{product.category}] {product.name}</option>))}
-              </select>
-              <p className="text-gray-600 text-[8px] lg:text-[10px] mt-2 font-mono uppercase tracking-widest">Selecting a product forces it to be the giant featured item on the shop page.</p>
+            <h3 className="text-ion font-bold text-sm lg:text-base uppercase tracking-widest border-b border-gray-800 pb-2 mb-4">Shop Carousel Gear</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[0, 1, 2].map((index) => (
+                <div key={index}>
+                  <label className="block text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1 lg:mb-2">Carousel Slot {index + 1}</label>
+                  <select value={pageContent.carousel_ids[index] || ''} onChange={(e) => handleCarouselSelection(index, e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded px-3 lg:px-4 py-2.5 lg:py-3 text-white focus:outline-none focus:border-ion transition-colors cursor-pointer text-xs lg:text-sm">
+                    <option value="">-- Auto-fill Newest --</option>
+                    {productsList.map(product => (<option key={product.id} value={product.id}>[{product.category}] {product.name}</option>))}
+                  </select>
+                </div>
+              ))}
             </div>
+            <p className="text-gray-600 text-[8px] lg:text-[10px] font-mono uppercase tracking-widest mt-2">Pick up to 3 specific products to rotate in the shop. Empty slots will automatically pull the newest database entries.</p>
           </div>
         )}
 
