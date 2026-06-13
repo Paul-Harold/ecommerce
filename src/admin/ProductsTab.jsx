@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../libs/supabase.js';
+import { useAutoMessage, useImageUpload } from './useAdminTools.js';
+import { AdminMessage } from './AdminUI.jsx';
 
 export default function ProductsTab() {
   const emptyProduct = { name: '', category: 'Mouse', price: '', description: '', image: '' };
-  
+
   const [productsList, setProductsList] = useState([]);
   const [newProduct, setNewProduct] = useState(emptyProduct);
   const [editProductId, setEditProductId] = useState(null);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const { message, showSuccess, showError } = useAutoMessage();
+  const { uploading: isUploading, uploadImage } = useImageUpload();
 
   useEffect(() => {
     fetchProducts();
@@ -33,26 +35,12 @@ export default function ProductsTab() {
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
-    setIsUploading(true);
-    setMessage({ type: '', text: '' });
-    
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `images/${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage.from('assets').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      
-      const { data } = supabase.storage.from('assets').getPublicUrl(filePath);
-      
-      setNewProduct(prev => ({ ...prev, image: data.publicUrl }));
-      setMessage({ type: 'success', text: 'Image successfully uploaded.' });
-    } catch (error) { 
-      setMessage({ type: 'error', text: 'Upload failed.' }); 
-    } finally { 
-      setIsUploading(false); 
+      const url = await uploadImage(file);
+      setNewProduct(prev => ({ ...prev, image: url }));
+      showSuccess('Image uploaded successfully.');
+    } catch {
+      showError('Image upload failed.');
     }
   };
 
@@ -60,7 +48,7 @@ export default function ProductsTab() {
     e.preventDefault();
     
     if (!newProduct.image) {
-      setMessage({ type: 'error', text: 'Please upload a product image before saving.' });
+      showError('Please upload a product image before saving.');
       return;
     }
 
@@ -77,22 +65,21 @@ export default function ProductsTab() {
       if (editProductId) {
         const { error } = await supabase.from('products').update(payload).eq('id', editProductId);
         if (error) throw error;
-        setMessage({ type: 'success', text: `Product updated successfully!` });
+        showSuccess('Product updated successfully!');
       } else {
         const insertPayload = { ...payload, discount_percent: 0, expires_at: null };
         const { error } = await supabase.from('products').insert([insertPayload]);
         if (error) throw error;
-        setMessage({ type: 'success', text: `Product added successfully!` });
+        showSuccess('Product added successfully!');
       }
-      
+
       setNewProduct(emptyProduct);
       setEditProductId(null);
       fetchProducts(); // Refresh the list locally
-    } catch (error) { 
-      setMessage({ type: 'error', text: 'Failed to save product.' }); 
-    } finally { 
-      setIsSubmitting(false); 
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000); 
+    } catch {
+      showError('Failed to save product.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -101,9 +88,9 @@ export default function ProductsTab() {
     try {
       await supabase.from('products').delete().eq('id', id);
       fetchProducts();
-      setMessage({ type: 'success', text: 'Product deleted.' });
-    } catch (error) { 
-      setMessage({ type: 'error', text: 'Failed to delete.' }); 
+      showSuccess('Product deleted.');
+    } catch {
+      showError('Failed to delete.');
     }
   };
 
@@ -121,11 +108,7 @@ export default function ProductsTab() {
 
   return (
     <div className="animate-fadeIn">
-      {message.text && (
-        <div className={`mb-4 lg:mb-6 px-4 py-3 lg:px-6 lg:py-4 rounded font-bold uppercase tracking-widest text-xs lg:text-sm flex items-center gap-3 border ${message.type === 'success' ? 'bg-green-500/10 text-green-500 border-green-500/30' : 'bg-red-500/10 text-red-500 border-red-500/30'}`}>
-          {message.text}
-        </div>
-      )}
+      <AdminMessage message={message} />
 
       <div className="flex justify-between items-center mb-6 lg:mb-8 border-b border-gray-800 pb-4">
         <h1 className="text-2xl lg:text-3xl font-bold uppercase tracking-widest">{editProductId ? 'Edit Product' : 'Add Product'}</h1>

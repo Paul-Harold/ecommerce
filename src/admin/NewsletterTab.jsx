@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../libs/supabase.js';
+import { useAutoMessage } from './useAdminTools.js';
+import { AdminMessage } from './AdminUI.jsx';
 
 export default function NewsletterTab() {
   const [newsletterData, setNewsletterData] = useState({
@@ -7,7 +9,7 @@ export default function NewsletterTab() {
   });
   const [subscribersList, setSubscribersList] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const { message, showSuccess, showError } = useAutoMessage();
 
   useEffect(() => {
     fetchNewsletterData();
@@ -15,7 +17,7 @@ export default function NewsletterTab() {
 
   async function fetchNewsletterData() {
     try {
-      const { data: templateData, error: templateError } = await supabase
+      const { data: templateData } = await supabase
         .from('site_content')
         .select('content_data')
         .eq('page_name', 'newsletter_template')
@@ -24,15 +26,15 @@ export default function NewsletterTab() {
       if (templateData && templateData.content_data) {
         setNewsletterData(templateData.content_data);
       } else {
-        setNewsletterData({ 
-          subject: "Welcome to Midnight OS", 
-          heading: "WELCOME TO THE GRID", 
-          message: "Thanks for subscribing.", 
-          promo_code: "WELCOME10" 
+        setNewsletterData({
+          subject: "Welcome to Midnight",
+          heading: "WELCOME TO MIDNIGHT",
+          message: "Thanks for subscribing! Here's 10% off your first order.",
+          promo_code: "WELCOME10"
         });
       }
 
-      const { data: subData, error: subError } = await supabase
+      const { data: subData } = await supabase
         .from('subscribers')
         .select('*')
         .order('created_at', { ascending: false });
@@ -49,26 +51,21 @@ export default function NewsletterTab() {
     try {
       const { error } = await supabase.functions.invoke('broadcast-newsletter', { body: newsletterData });
       if (error) throw error;
-      
-      setMessage({ type: 'success', text: 'Broadcast transmission sent to all subscribers.' });
+
+      showSuccess('Newsletter sent to all subscribers.');
       setNewsletterData({ subject: '', heading: '', message: '', promo_code: '' });
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to broadcast transmission.' });
+    } catch {
+      showError('Failed to send the newsletter.');
     } finally {
       setIsSubmitting(false);
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     }
   };
 
   return (
     <div className="animate-fadeIn">
-      {message.text && (
-        <div className={`mb-4 lg:mb-6 px-4 py-3 lg:px-6 lg:py-4 rounded font-bold uppercase tracking-widest text-xs lg:text-sm flex items-center gap-3 border ${message.type === 'success' ? 'bg-green-500/10 text-green-500 border-green-500/30' : 'bg-red-500/10 text-red-500 border-red-500/30'}`}>
-          {message.text}
-        </div>
-      )}
+      <AdminMessage message={message} />
 
-      <h1 className="text-2xl lg:text-3xl font-bold uppercase tracking-widest mb-6 lg:mb-8 border-b border-gray-800 pb-4">Newsletter Command Center</h1>
+      <h1 className="text-2xl lg:text-3xl font-bold uppercase tracking-widest mb-6 lg:mb-8 border-b border-gray-800 pb-4">Newsletter</h1>
       
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <div>
@@ -96,14 +93,14 @@ export default function NewsletterTab() {
             </div>
 
             <button type="submit" disabled={isSubmitting} className={`w-full font-bold uppercase tracking-widest py-3 lg:py-4 rounded transition-all duration-300 mt-2 lg:mt-4 text-xs lg:text-sm ${isSubmitting ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-500'}`}>
-              {isSubmitting ? 'Transmitting...' : 'Broadcast to All Subscribers'}
+              {isSubmitting ? 'Sending...' : 'Send to All Subscribers'}
             </button>
           </form>
         </div>
 
         <div>
           <div className="flex justify-between items-end mb-4 lg:mb-6 border-b border-gray-800 pb-2">
-            <h2 className="text-lg lg:text-xl font-bold uppercase tracking-widest text-gray-400">Subscriber Grid</h2>
+            <h2 className="text-lg lg:text-xl font-bold uppercase tracking-widest text-gray-400">Subscribers</h2>
             <span className="text-electric text-[10px] lg:text-xs font-bold uppercase tracking-widest bg-electric/10 px-2 lg:px-3 py-1 rounded">
               Total: {subscribersList.length}
             </span>
@@ -112,7 +109,7 @@ export default function NewsletterTab() {
           <div className="bg-[#0f1115] border border-gray-800 rounded-xl overflow-hidden">
             <div className="max-h-[400px] lg:max-h-[600px] overflow-y-auto custom-scrollbar">
               {subscribersList.length === 0 ? (
-                <div className="p-6 lg:p-8 text-center text-gray-500 text-xs lg:text-sm font-mono">No users on the grid yet.</div>
+                <div className="p-6 lg:p-8 text-center text-gray-500 text-xs lg:text-sm font-mono">No subscribers yet.</div>
               ) : (
                 subscribersList.map((sub, idx) => (
                   <div key={sub.id} className={`p-3 lg:p-4 flex flex-col gap-1 ${idx !== subscribersList.length - 1 ? 'border-b border-gray-800/50' : ''}`}>

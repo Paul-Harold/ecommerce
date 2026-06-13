@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "../libs/supabase.js";
+import { useAutoMessage } from './useAdminTools.js';
+import { AdminMessage } from './AdminUI.jsx';
 
 export default function OrdersTab() {
   const [ordersList, setOrdersList] = useState([]);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const { message, showSuccess, showError } = useAutoMessage();
 
   useEffect(() => {
     fetchOrders();
@@ -31,21 +33,15 @@ export default function OrdersTab() {
       if (error) throw error;
       
       fetchOrders(); // Refresh local list
-      setMessage({ type: 'success', text: `Order #${orderId.substring(0,8)} status updated to ${newStatus}.` });
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update order status.' });
-    } finally {
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      showSuccess(`Order #${orderId.substring(0, 8)} status updated to ${newStatus}.`);
+    } catch {
+      showError('Failed to update order status.');
     }
   };
 
   return (
     <div className="animate-fadeIn">
-      {message.text && (
-        <div className={`mb-4 lg:mb-6 px-4 py-3 lg:px-6 lg:py-4 rounded font-bold uppercase tracking-widest text-xs lg:text-sm flex items-center gap-3 border ${message.type === 'success' ? 'bg-green-500/10 text-green-500 border-green-500/30' : 'bg-red-500/10 text-red-500 border-red-500/30'}`}>
-          {message.text}
-        </div>
-      )}
+      <AdminMessage message={message} />
 
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 mb-6 lg:mb-8 border-b border-gray-800 pb-4">
         <h1 className="text-2xl lg:text-3xl font-bold uppercase tracking-widest">Order History</h1>

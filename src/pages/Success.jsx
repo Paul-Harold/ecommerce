@@ -5,17 +5,18 @@ export default function Success() {
   const location = useLocation();
   const navigate = useNavigate();
   const orderData = location.state || null;
-  const [date, setDate] = useState('');
+
+  // Captured once at mount — the receipt timestamp shouldn't change on re-render.
+  const [date] = useState(() =>
+    new Date().toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+    })
+  );
 
   useEffect(() => {
     // Snap to top on load
     window.scrollTo(0, 0);
-    
-    const now = new Date();
-    setDate(now.toLocaleDateString('en-US', { 
-      year: 'numeric', month: 'long', day: 'numeric', 
-      hour: '2-digit', minute: '2-digit', timeZoneName: 'short' 
-    }));
   }, []);
 
   const handlePrint = () => {
@@ -26,9 +27,9 @@ export default function Success() {
     return (
       <div className="min-h-screen bg-[#050608] flex flex-col items-center justify-center text-white px-4 text-center">
         <h2 className="text-2xl md:text-3xl font-black uppercase tracking-widest mb-3 md:mb-4">No Recent Order</h2>
-        <p className="text-gray-500 mb-6 md:mb-8 font-mono text-xs md:text-sm">No recent transaction data found in current session.</p>
+        <p className="text-gray-500 mb-6 md:mb-8 font-mono text-xs md:text-sm">We couldn't find any recent order details.</p>
         <Link to="/shop" className="bg-electric text-midnight font-bold uppercase tracking-widest px-8 py-3.5 md:py-4 rounded hover:bg-white transition-colors text-xs md:text-sm">
-          Return to Armory
+          Continue Shopping
         </Link>
       </div>
     );
@@ -74,8 +75,8 @@ export default function Success() {
           {/* Top Receipt Block */}
           <div className="flex flex-col sm:flex-row justify-between items-start border-b border-dashed border-gray-700 pb-6 mb-6 md:pb-8 md:mb-8 print:border-gray-300 gap-4 sm:gap-0">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black uppercase tracking-widest text-white mb-1 print:text-black">MIDNIGHT_OS</h2>
-              <p className="text-gray-500 text-[10px] md:text-xs tracking-widest uppercase print:text-gray-500">Hardware Division</p>
+              <h2 className="text-xl sm:text-2xl font-black uppercase tracking-widest text-white mb-1 print:text-black">MIDNIGHT</h2>
+              <p className="text-gray-500 text-[10px] md:text-xs tracking-widest uppercase print:text-gray-500">Gaming Hardware</p>
             </div>
             <div className="text-left sm:text-right w-full sm:w-auto">
               <p className="text-gray-400 font-bold print:text-gray-800 text-[10px] md:text-sm">RECEIPT</p>
@@ -145,7 +146,7 @@ export default function Success() {
 
           {/* Footer Note */}
           <div className="mt-12 md:mt-16 text-center border-t border-gray-800 pt-6 md:pt-8 print:border-gray-300">
-            <p className="text-gray-600 text-[8px] md:text-[10px] uppercase tracking-widest print:text-gray-400">Thank you for shopping with Midnight OS</p>
+            <p className="text-gray-600 text-[8px] md:text-[10px] uppercase tracking-widest print:text-gray-400">Thank you for shopping with Midnight</p>
           </div>
 
         </div>

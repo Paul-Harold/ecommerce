@@ -46,7 +46,7 @@ export default function About() {
               <div className="w-10 h-10 md:w-12 md:h-12 bg-[#0a2540] rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 text-[#61DAFB]">
                 <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22.5A10.5 10.5 0 1 1 22.5 12 10.5 10.5 0 0 1 12 22.5Zm0-19.5a9 9 0 1 0 9 9 9 9 0 0 0-9-9Z"/><path d="M12 15.75a3.75 3.75 0 1 1 3.75-3.75 3.75 3.75 0 0 1-3.75 3.75Zm0-6a2.25 2.25 0 1 0 2.25 2.25A2.25 2.25 0 0 0 12 9.75Z"/><path d="M12 20.25a8.25 8.25 0 1 1 8.25-8.25 8.25 8.25 0 0 1-8.25 8.25Zm0-15a6.75 6.75 0 1 0 6.75 6.75A6.75 6.75 0 0 0 12 5.25Z"/></svg>
               </div>
-              <h4 className="font-bold text-white text-sm md:text-base mb-1">React 18</h4>
+              <h4 className="font-bold text-white text-sm md:text-base mb-1">React 19</h4>
               <p className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-widest font-mono">Core Engine</p>
             </div>
 
@@ -98,7 +98,7 @@ export default function About() {
               <svg className="w-5 h-5 text-electric shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
               <div>
                 <p className="font-bold text-white text-sm md:text-base">Secure Authentication Loop</p>
-                <p className="text-gray-500 text-xs md:text-sm mt-1">Utilized Supabase Auth for user tracking, ensuring secure checkout flows and personalized operative dashboards based on verified session states.</p>
+                <p className="text-gray-500 text-xs md:text-sm mt-1">Utilized Supabase Auth for user tracking, ensuring secure checkout flows and personalized user dashboards based on verified session states.</p>
               </div>
             </li>
           </ul>

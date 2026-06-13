@@ -81,7 +81,7 @@ export default function Navbar() {
         } else {
           setIsAdmin(false);
         }
-      } catch (error) {
+      } catch {
         setIsAdmin(false);
       }
     };
@@ -191,7 +191,7 @@ export default function Navbar() {
                 <div className="absolute top-full mt-2 w-full bg-[#0f1115] border border-gray-800 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden z-[100] animate-fadeIn">
                   {isSearching ? (
                     <div className="p-4 text-center text-[10px] text-electric uppercase tracking-widest font-mono animate-pulse">
-                      Scanning Arsenal...
+                      Searching...
                     </div>
                   ) : suggestions.length > 0 ? (
                     <div className="flex flex-col">
@@ -213,7 +213,7 @@ export default function Navbar() {
                     </div>
                   ) : (
                     <div className="p-4 text-center text-[10px] text-red-500 uppercase tracking-widest font-mono">
-                      No matching hardware
+                      No products found
                     </div>
                   )}
                 </div>
@@ -221,8 +221,8 @@ export default function Navbar() {
             </div>
 
             {isAdmin && (
-              <Link 
-                to="/Admin" 
+              <Link
+                to="/admin"
                 className="hidden md:flex items-center gap-2 bg-electric/10 border border-electric/30 text-electric px-4 py-1.5 rounded-full hover:bg-electric hover:text-midnight transition-all shadow-[0_0_10px_rgba(64,224,255,0.2)]"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -245,9 +245,9 @@ export default function Navbar() {
             </Link>
 
             {user ? (
-              <button 
-                onClick={() => setIsProfileSidebarOpen(true)} 
-                title="Operative Dossier"
+              <button
+                onClick={() => setIsProfileSidebarOpen(true)}
+                title="My Account"
                 className="text-gray-300 hover:text-electric transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -306,7 +306,7 @@ export default function Navbar() {
               <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-electric transition-colors">About</Link>
               
               {isAdmin && (
-                <Link to="/Admin" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-widest text-electric border-t border-gray-800 pt-6 mt-2">
+                <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-sm font-bold uppercase tracking-widest text-electric border-t border-gray-800 pt-6 mt-2">
                   Admin Dashboard
                 </Link>
               )}
@@ -326,7 +326,7 @@ export default function Navbar() {
           <div className="fixed top-0 right-0 h-full w-full max-w-sm bg-[#0f1115] border-l border-gray-800 z-[101] shadow-2xl flex flex-col">
             
             <div className="p-6 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-xl font-black uppercase tracking-widest text-white">Command Center</h2>
+              <h2 className="text-xl font-black uppercase tracking-widest text-white">My Account</h2>
               <button onClick={() => setIsProfileSidebarOpen(false)} className="text-gray-500 hover:text-white transition-colors">
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
@@ -341,7 +341,7 @@ export default function Navbar() {
                   <span className="font-black text-gray-400 text-lg uppercase">{user.email.charAt(0)}</span>
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-[10px] text-electric font-bold uppercase tracking-widest mb-0.5">Active Operative</p>
+                  <p className="text-[10px] text-electric font-bold uppercase tracking-widest mb-0.5">Signed in as</p>
                   <p className="font-mono text-white text-sm truncate">{user.email}</p>
                 </div>
               </div>
@@ -367,7 +367,7 @@ export default function Navbar() {
                   onClick={() => handleProfileNavigation('settings')}
                   className="w-full flex items-center justify-between p-4 bg-gray-900 border border-gray-800 hover:border-electric rounded-xl group transition-all"
                 >
-                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">Configurations</span>
+                  <span className="text-sm font-bold uppercase tracking-widest text-gray-300 group-hover:text-electric transition-colors">Settings</span>
                   <svg className="w-4 h-4 text-gray-600 group-hover:text-electric transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
               </div>

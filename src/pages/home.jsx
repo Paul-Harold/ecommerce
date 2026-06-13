@@ -63,13 +63,13 @@ export default function Home() {
 
       if (error) {
         if (error.code === '23505') {
-          throw new Error('This email is already on the grid.');
+          throw new Error('This email is already subscribed.');
         }
-        throw new Error('Transmission failed. Try again.');
+        throw new Error('Something went wrong. Please try again.');
       }
 
       setStatus('success');
-      setMessage('Welcome to the grid. Check your inbox.');
+      setMessage("You're subscribed! Check your inbox for your discount.");
       setEmail(''); 
       
     } catch (error) {
@@ -90,11 +90,11 @@ export default function Home() {
         let featuredIds = [];
 
         if (!siteError && siteData) {
-          setCmsContent({
-            hero_title: siteData.hero_title || cmsContent.hero_title,
-            hero_subtitle: siteData.hero_subtitle || cmsContent.hero_subtitle,
-            hero_image_url: siteData.hero_image_url || cmsContent.hero_image_url,
-          });
+          setCmsContent(prev => ({
+            hero_title: siteData.hero_title || prev.hero_title,
+            hero_subtitle: siteData.hero_subtitle || prev.hero_subtitle,
+            hero_image_url: siteData.hero_image_url || prev.hero_image_url,
+          }));
           featuredIds = siteData.content_data?.featured_ids || [];
         }
 
@@ -227,11 +227,11 @@ export default function Home() {
                       
                       {discountInfo ? (
                         <div className="flex items-center gap-2 md:gap-3 justify-center">
-                          <span className="text-gray-500 line-through text-xs md:text-sm font-bold">${product.price}</span>
-                          <span className="text-ion font-black text-lg md:text-xl">${discountInfo.newPrice}</span>
+                          <span className="text-gray-500 line-through text-xs md:text-sm font-bold">₱{product.price}</span>
+                          <span className="text-ion font-black text-lg md:text-xl">₱{discountInfo.newPrice}</span>
                         </div>
                       ) : (
-                        <p className="text-white font-bold text-lg md:text-xl">${product.price}</p>
+                        <p className="text-white font-bold text-lg md:text-xl">₱{product.price}</p>
                       )}
                     </div>
                   </div>
@@ -250,7 +250,7 @@ export default function Home() {
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-widest text-white mb-1 md:mb-2">
                 New <span className="text-electric">Releases</span>
               </h2>
-              <p className="text-gray-400 uppercase tracking-widest text-[10px] md:text-sm">Recently declassified gear</p>
+              <p className="text-gray-400 uppercase tracking-widest text-[10px] md:text-sm">The latest additions to our lineup</p>
             </div>
             <button onClick={() => navigate('/shop')} className="hidden sm:block text-electric text-xs md:text-sm font-bold uppercase tracking-widest hover:text-white transition-colors">
               View All Gear →
@@ -283,11 +283,11 @@ export default function Home() {
                       
                       {discountInfo ? (
                         <div className="flex items-center gap-2 md:gap-3 mt-2 md:mt-4">
-                          <span className="text-gray-500 line-through text-xs md:text-sm font-bold">${product.price}</span>
-                          <span className="text-ion font-black text-base md:text-lg">${discountInfo.newPrice}</span>
+                          <span className="text-gray-500 line-through text-xs md:text-sm font-bold">₱{product.price}</span>
+                          <span className="text-ion font-black text-base md:text-lg">₱{discountInfo.newPrice}</span>
                         </div>
                       ) : (
-                        <p className="text-electric font-bold text-base md:text-lg mt-2 md:mt-4">${product.price}</p>
+                        <p className="text-electric font-bold text-base md:text-lg mt-2 md:mt-4">₱{product.price}</p>
                       )}
                     </div>
                   </div>
@@ -398,7 +398,7 @@ export default function Home() {
               disabled={status === 'loading'}
               className="w-full sm:w-auto bg-electric text-midnight font-bold py-3 md:py-4 px-6 md:px-8 rounded hover:bg-white hover:shadow-[0_0_20px_#40E0FF] transition-all duration-300 uppercase tracking-wider disabled:opacity-50 text-sm md:text-base shrink-0"
             >
-              {status === 'loading' ? 'Routing...' : 'Subscribe'}
+              {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
             </button>
           </form>
 

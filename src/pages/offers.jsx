@@ -14,8 +14,8 @@ export default function Offers() {
   const [now, setNow] = useState(new Date());
 
   const [cmsContent, setCmsContent] = useState({
-    hero_title: 'Active <span class="text-electric">Directives</span>',
-    hero_subtitle: 'Classified promotions, bundles, and limited-time hardware drops.',
+    hero_title: 'Deals &amp; <span class="text-electric">Offers</span>',
+    hero_subtitle: 'Promotions, bundles, and limited-time deals on gaming gear.',
     hero_image_url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070',
     offers_terms: 'Standard terms and conditions apply to all promotions.'
   });
@@ -25,12 +25,12 @@ export default function Offers() {
       try {
         const { data: cmsData } = await supabase.from('site_content').select('*').eq('page_name', 'offers').single();
         if (cmsData) {
-          setCmsContent({
-            hero_title: cmsData.hero_title || cmsContent.hero_title,
-            hero_subtitle: cmsData.hero_subtitle || cmsContent.hero_subtitle,
-            hero_image_url: cmsData.hero_image_url || cmsContent.hero_image_url,
+          setCmsContent(prev => ({
+            hero_title: cmsData.hero_title || prev.hero_title,
+            hero_subtitle: cmsData.hero_subtitle || prev.hero_subtitle,
+            hero_image_url: cmsData.hero_image_url || prev.hero_image_url,
             offers_terms: cmsData.content_data?.offers_terms || 'Standard terms and conditions apply to all promotions.'
-          });
+          }));
         }
 
         const { data: promoData, error: promoError } = await supabase.from('promotions').select('*').eq('type', 'bundle').eq('is_active', true).order('created_at', { ascending: false });
@@ -109,7 +109,7 @@ export default function Offers() {
             <div className="mb-10 md:mb-16 bg-ion/10 border border-ion/30 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between shadow-[0_0_30px_rgba(57,255,20,0.15)] text-center md:text-left">
               <div className="w-full">
                 <div className="inline-block px-3 py-1 md:px-4 md:py-1 bg-ion text-midnight rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest mb-3 md:mb-4 animate-pulse">
-                  Active Link Detected
+                  Promo Active
                 </div>
                 <h2 className="text-2xl md:text-3xl font-black uppercase tracking-widest text-white mb-2">{activePromo.title}</h2>
                 <p className="text-gray-400 text-sm md:text-base">You have successfully unlocked a {activePromo.discount_percent}% discount on eligible gear.</p>
@@ -123,7 +123,7 @@ export default function Offers() {
           {bundles.length > 0 && (
             <>
               <h3 className="text-xl md:text-2xl font-black uppercase tracking-widest mb-4 md:mb-6 text-white border-b border-gray-800 pb-3 md:pb-4">
-                Tactical <span className="text-ion">Bundles</span>
+                Bundle <span className="text-ion">Deals</span>
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-10 md:mb-16">
                 {bundles.map(bundle => (
@@ -187,7 +187,7 @@ export default function Offers() {
           {saleProducts.length > 0 && (
             <>
               <h3 className="text-xl md:text-2xl font-black uppercase tracking-widest mb-4 md:mb-6 text-white border-b border-gray-800 pb-3 md:pb-4">
-                Individual <span className="text-ion">Markdowns</span>
+                On <span className="text-ion">Sale</span>
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-16">
                 {saleProducts.map(product => {

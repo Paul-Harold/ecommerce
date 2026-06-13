@@ -24,8 +24,8 @@ export default function Shops() {
   const touchEndX = useRef(null);
   
   const [cmsContent, setCmsContent] = useState({
-    hero_title: 'Midnight <span class="text-electric">Arsenal</span>',
-    hero_subtitle: 'Equip yourself with precision-engineered hardware.',
+    hero_title: 'Shop the <span class="text-electric">Collection</span>',
+    hero_subtitle: 'Precision-engineered gear for every setup.',
     carousel_ids: []
   });
 
@@ -43,8 +43,8 @@ export default function Shops() {
           
         if (!cmsError && cmsData) {
           setCmsContent({
-            hero_title: cmsData.hero_title || 'Midnight <span class="text-electric">Arsenal</span>',
-            hero_subtitle: cmsData.hero_subtitle || 'Equip yourself with precision-engineered hardware.',
+            hero_title: cmsData.hero_title || 'Shop the <span class="text-electric">Collection</span>',
+            hero_subtitle: cmsData.hero_subtitle || 'Precision-engineered gear for every setup.',
             carousel_ids: cmsData.content_data?.carousel_ids || []
           });
         }
@@ -201,7 +201,7 @@ export default function Shops() {
             
             {activePromo && (
               <div className="mt-4 md:mt-6 inline-block bg-ion/10 border border-ion/30 text-ion px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-sm font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(57,255,20,0.2)]">
-                Active Link: {activePromo.title} ({activePromo.discount_percent}% Applied to Eligible Gear)
+                Promo Active: {activePromo.title} — {activePromo.discount_percent}% off eligible gear
               </div>
             )}
           </div>
@@ -375,7 +375,7 @@ export default function Shops() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-16 md:py-24">
                <div className="w-10 h-10 md:w-12 md:h-12 border-4 border-gray-800 border-t-electric rounded-full animate-spin mb-4"></div>
-               <p className="text-gray-500 font-bold tracking-widest uppercase text-[10px] md:text-sm">Loading Arsenal...</p>
+               <p className="text-gray-500 font-bold tracking-widest uppercase text-[10px] md:text-sm">Loading products...</p>
             </div>
           ) : sortedAndFilteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
@@ -476,8 +476,8 @@ export default function Shops() {
             </div>
           ) : (
             <div className="text-center py-16 md:py-24 border border-dashed border-gray-800 rounded-xl px-4">
-              <p className="text-gray-500 text-base md:text-xl font-bold uppercase tracking-widest mb-2">No gear found matching that query.</p>
-              <p className="text-gray-600 text-xs md:text-sm">Try searching for something else, like "Mouse" or "Keyboard".</p>
+              <p className="text-gray-500 text-base md:text-xl font-bold uppercase tracking-widest mb-2">No products found.</p>
+              <p className="text-gray-600 text-xs md:text-sm">Try a different search or category, like "Mouse" or "Keyboard".</p>
             </div>
           )}
 

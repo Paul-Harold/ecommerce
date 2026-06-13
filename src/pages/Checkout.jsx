@@ -24,9 +24,9 @@ export default function Checkout() {
   const [voucherMessage, setVoucherMessage] = useState('');
 
   const [supportInfo, setSupportInfo] = useState({
-    email: 'paulharold.batiles@gmail.com.com',
+    email: 'paulharold.batiles@gmail.com',
     phone: '09205278696',
-    policy: '30-day money-back guarantee. All hardware must be returned in original classified packaging.'
+    policy: '30-day money-back guarantee. All items must be returned in their original packaging.'
   });
 
   const [formData, setFormData] = useState({
@@ -40,11 +40,11 @@ export default function Checkout() {
       try {
         const { data } = await supabase.from('site_content').select('content_data').eq('page_name', 'checkout').maybeSingle();
         if (data && data.content_data) {
-          setSupportInfo({
-            email: data.content_data.support_email || supportInfo.email,
-            phone: data.content_data.support_phone || supportInfo.phone,
-            policy: data.content_data.return_policy || supportInfo.policy
-          });
+          setSupportInfo(prev => ({
+            email: data.content_data.support_email || prev.email,
+            phone: data.content_data.support_phone || prev.phone,
+            policy: data.content_data.return_policy || prev.policy
+          }));
         }
       } catch (err) {
         console.error("Error loading checkout data:", err);
@@ -107,7 +107,7 @@ export default function Checkout() {
 
       setAppliedVoucher(data);
       setVoucherMessage(`${data.discount_percent}% discount applied successfully!`);
-    } catch (err) {
+    } catch {
       setVoucherError('System error verifying voucher.');
     }
   };
@@ -123,18 +123,18 @@ export default function Checkout() {
     e.preventDefault();
     
     if (formData.cardNumber.length < 19) {
-      setError('Invalid Authorization: Card number must be 16 digits.');
+      setError('Please enter a valid 16-digit card number.');
       return;
     }
-    
-    const [month, year] = formData.expiry.split('/');
+
+    const [month] = formData.expiry.split('/');
     if (formData.expiry.length < 5 || parseInt(month) < 1 || parseInt(month) > 12) {
-      setError('Invalid Authorization: Expiration date must be a valid MM/YY.');
+      setError('Please enter a valid expiration date (MM/YY).');
       return;
     }
 
     if (formData.cvc.length < 3) {
-      setError('Invalid Authorization: Security code must be 3 or 4 digits.');
+      setError('Please enter a valid security code (CVC).');
       return;
     }
 
@@ -142,7 +142,7 @@ export default function Checkout() {
     setError('');
 
     try {
-      // 🚨 NEW FIX: Grab the currently logged-in operative's ID
+      // Grab the currently logged-in user's ID so the order is tied to their account
       const { data: authData } = await supabase.auth.getUser();
       const currentUserId = authData?.user?.id || null;
 
@@ -202,8 +202,8 @@ export default function Checkout() {
       });
 
     } catch (err) {
-      console.error("Transmission Error:", err);
-      setError('Transaction failed. Secure connection lost.');
+      console.error("Checkout error:", err);
+      setError('Something went wrong while placing your order. Please try again.');
       setIsProcessing(false);
     }
   };
@@ -214,10 +214,10 @@ export default function Checkout() {
         <svg className="w-16 h-16 md:w-24 md:h-24 text-gray-800 mb-4 md:mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
-        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-widest mb-3 md:mb-4 text-center">Cart is Empty</h2>
-        <p className="text-gray-500 mb-6 md:mb-8 font-mono text-xs md:text-sm text-center">No hardware selected for deployment.</p>
+        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-widest mb-3 md:mb-4 text-center">Your Cart is Empty</h2>
+        <p className="text-gray-500 mb-6 md:mb-8 font-mono text-xs md:text-sm text-center">You haven't added anything to your cart yet.</p>
         <Link to="/shop" className="w-full sm:w-auto text-center bg-electric text-midnight font-bold uppercase tracking-widest px-8 py-4 rounded hover:bg-white transition-colors">
-          Return to Armory
+          Continue Shopping
         </Link>
       </div>
     );
@@ -247,7 +247,7 @@ export default function Checkout() {
               
               {/* Shipping Section */}
               <div className="bg-[#0f1115] border border-gray-800 p-5 md:p-8 rounded-xl">
-                <h3 className="text-lg md:text-xl font-bold uppercase tracking-widest mb-4 md:mb-6 border-b border-gray-800 pb-3 md:pb-4">1. Shipping Coordinates</h3>
+                <h3 className="text-lg md:text-xl font-bold uppercase tracking-widest mb-4 md:mb-6 border-b border-gray-800 pb-3 md:pb-4">1. Shipping Details</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2">First Name</label>
@@ -280,7 +280,7 @@ export default function Checkout() {
 
               {/* Payment Section */}
               <div className="bg-[#0f1115] border border-gray-800 p-5 md:p-8 rounded-xl">
-                <h3 className="text-lg md:text-xl font-bold uppercase tracking-widest mb-4 md:mb-6 border-b border-gray-800 pb-3 md:pb-4">2. Payment Authorization</h3>
+                <h3 className="text-lg md:text-xl font-bold uppercase tracking-widest mb-4 md:mb-6 border-b border-gray-800 pb-3 md:pb-4">2. Payment Details</h3>
                 <div className="mb-4">
                   <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2">Card Number</label>
                   <input required type="text" placeholder="XXXX XXXX XXXX XXXX" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} className="w-full bg-gray-900 border border-gray-700 rounded px-4 py-3 text-white text-sm font-mono focus:outline-none focus:border-ion transition-colors" />
@@ -309,7 +309,7 @@ export default function Checkout() {
                 disabled={isProcessing}
                 className={`w-full py-4 md:py-5 rounded font-black uppercase tracking-widest text-base md:text-lg transition-all ${isProcessing ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-ion text-midnight hover:bg-white shadow-[0_0_20px_rgba(57,255,20,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]'}`}
               >
-                {isProcessing ? 'Processing Transaction...' : `Authorize ₱${finalTotal.toFixed(2)}`}
+                {isProcessing ? 'Processing...' : `Pay ₱${finalTotal.toFixed(2)}`}
               </button>
 
             </form>
@@ -319,7 +319,7 @@ export default function Checkout() {
             
             {/* Manifest / Cart Summary */}
             <div className="bg-[#0B0D10] border border-gray-800 rounded-xl p-5 md:p-8 lg:top-28">
-              <h3 className="text-lg md:text-xl font-bold uppercase tracking-widest mb-4 md:mb-6 border-b border-gray-800 pb-3 md:pb-4">Manifest</h3>
+              <h3 className="text-lg md:text-xl font-bold uppercase tracking-widest mb-4 md:mb-6 border-b border-gray-800 pb-3 md:pb-4">Order Summary</h3>
               
               <div className="space-y-4 mb-6 max-h-[300px] md:max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {activeCart.map((item, index) => (
@@ -337,7 +337,7 @@ export default function Checkout() {
               </div>
 
               <div className="border-t border-dashed border-gray-700 pt-5 pb-2">
-                <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2">Discount Authorization Code</label>
+                <label className="block text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-2">Discount / Voucher Code</label>
                 {!appliedVoucher ? (
                   <div className="flex gap-2">
                     <input 
@@ -400,7 +400,7 @@ export default function Checkout() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
                 </svg>
                 <div>
-                  <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white mb-1">Support Channel</p>
+                  <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white mb-1">Customer Support</p>
                   <p className="text-gray-500 text-xs md:text-sm">{supportInfo.email} <br/> {supportInfo.phone}</p>
                 </div>
               </div>
@@ -409,7 +409,7 @@ export default function Checkout() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                 </svg>
                 <div>
-                  <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white mb-1">Return Directive</p>
+                  <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white mb-1">Return Policy</p>
                   <p className="text-gray-500 text-xs md:text-sm">{supportInfo.policy}</p>
                 </div>
               </div>

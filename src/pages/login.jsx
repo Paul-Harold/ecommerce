@@ -58,7 +58,7 @@ export default function Login() {
           .eq('user_id', authData.user.id)
           .maybeSingle();
 
-        setMessage({ type: 'success', text: 'Access granted. Redirecting...' });
+        setMessage({ type: 'success', text: 'Signed in successfully. Redirecting...' });
         
         setTimeout(() => {
           if (adminData) {
@@ -108,10 +108,10 @@ export default function Login() {
 
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-widest text-white mb-2">
-            System <span className="text-electric">Access</span>
+            Welcome to <span className="text-electric">Midnight</span>
           </h1>
           <p className="text-gray-500 text-[10px] sm:text-sm uppercase tracking-wider">
-            Authenticate to continue
+            Sign in or create an account to continue
           </p>
         </div>
 
@@ -202,7 +202,7 @@ export default function Login() {
               loading ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-electric text-midnight hover:bg-white hover:shadow-[0_0_20px_#40E0FF]'
             }`}
           >
-            {loading ? 'Authenticating...' : (activeTab === 'register' ? 'Create Account' : 'Grant Access')}
+            {loading ? 'Please wait...' : (activeTab === 'register' ? 'Create Account' : 'Sign In')}
           </button>
         </form>
 

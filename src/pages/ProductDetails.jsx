@@ -97,7 +97,7 @@ export default function ProductDetails() {
       <div className="min-h-screen bg-midnight flex flex-col items-center justify-center text-white px-4">
         <h2 className="text-xl md:text-2xl font-black uppercase tracking-widest mb-4 text-center">Product Not Found</h2>
         <button onClick={() => navigate('/shop')} className="text-electric hover:text-white transition-colors uppercase tracking-widest text-xs md:text-sm font-bold border border-electric/30 px-6 py-3 rounded">
-          Return to Arsenal
+          Back to Shop
         </button>
       </div>
     );

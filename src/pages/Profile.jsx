@@ -94,7 +94,7 @@ export default function Profile() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#050608] flex items-center justify-center text-electric font-mono text-xs md:text-sm uppercase tracking-widest animate-pulse px-4 text-center">
-        Decrypting Operative Data...
+        Loading your account...
       </div>
     );
   }
@@ -115,7 +115,7 @@ export default function Profile() {
               </span>
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="font-bold uppercase tracking-widest text-xs md:text-sm truncate">{settingsForm.fullName || 'Operative'}</h2>
+              <h2 className="font-bold uppercase tracking-widest text-xs md:text-sm truncate">{settingsForm.fullName || 'Customer'}</h2>
               <p className="text-[10px] md:text-[10px] text-gray-500 font-mono truncate">{user?.email}</p>
             </div>
           </div>
@@ -172,20 +172,20 @@ export default function Profile() {
           {activeTab === 'dashboard' && (
             <div className="animate-fadeIn space-y-4 md:space-y-6">
               <div className="border-b border-gray-800 pb-4 md:pb-6 mb-6 md:mb-8">
-                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-widest">Dossier Overview</h1>
-                <p className="text-gray-500 text-xs md:text-sm mt-1 md:mt-2 font-mono">Connection Secure. Welcome to the grid.</p>
+                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-widest">Account Overview</h1>
+                <p className="text-gray-500 text-xs md:text-sm mt-1 md:mt-2 font-mono">Welcome back.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 <div className="bg-[#0f1115] border border-gray-800 rounded-xl p-5 md:p-6 hover:border-electric transition-colors cursor-pointer shadow-lg" onClick={() => setActiveTab('orders')}>
-                  <p className="text-gray-500 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-1 md:mb-2">Total Deployments</p>
+                  <p className="text-gray-500 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-1 md:mb-2">Total Orders</p>
                   <p className="text-3xl md:text-4xl font-black text-white">{orders.length}</p>
-                  <p className="text-electric text-[10px] md:text-xs mt-1 md:mt-2 font-mono">{pendingOrders} active inbound</p>
+                  <p className="text-electric text-[10px] md:text-xs mt-1 md:mt-2 font-mono">{pendingOrders} in progress</p>
                 </div>
                 <div className="bg-[#0f1115] border border-gray-800 rounded-xl p-5 md:p-6 hover:border-ion transition-colors cursor-pointer shadow-lg" onClick={() => setActiveTab('favorites')}>
                   <p className="text-gray-500 text-[9px] md:text-[10px] font-bold uppercase tracking-widest mb-1 md:mb-2">Saved Hardware</p>
                   <p className="text-3xl md:text-4xl font-black text-white">{favorites.length}</p>
-                  <p className="text-ion text-[10px] md:text-xs mt-1 md:mt-2 font-mono">items in local cache</p>
+                  <p className="text-ion text-[10px] md:text-xs mt-1 md:mt-2 font-mono">items saved</p>
                 </div>
               </div>
             </div>
@@ -194,16 +194,16 @@ export default function Profile() {
           {activeTab === 'orders' && (
             <div className="animate-fadeIn space-y-4 md:space-y-6">
               <div className="border-b border-gray-800 pb-4 md:pb-6 mb-6 md:mb-8">
-                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-widest">Deployment History</h1>
+                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-widest">Order History</h1>
               </div>
 
               {isFetchingOrders ? (
-                <p className="text-gray-500 font-mono text-xs md:text-sm">Retrieving shipping logs...</p>
+                <p className="text-gray-500 font-mono text-xs md:text-sm">Loading your orders...</p>
               ) : orders.length === 0 ? (
                 <div className="bg-[#0f1115] border border-gray-800 rounded-xl p-8 md:p-12 text-center shadow-lg">
-                  <p className="text-gray-500 font-mono text-xs md:text-sm uppercase tracking-widest mb-6">No previous deployments found on record.</p>
+                  <p className="text-gray-500 font-mono text-xs md:text-sm uppercase tracking-widest mb-6">You haven't placed any orders yet.</p>
                   <button onClick={() => navigate('/shop')} className="w-full sm:w-auto bg-electric text-midnight font-bold uppercase tracking-widest px-8 py-3.5 md:py-3 rounded hover:bg-white transition-colors text-xs md:text-sm">
-                    Enter Armory
+                    Start Shopping
                   </button>
                 </div>
               ) : (
@@ -255,13 +255,13 @@ export default function Profile() {
                             ))
                           ) : (
                             <div className="flex items-center gap-3">
-                              <span className="text-gray-500 font-mono text-xs">Hardware details encrypted or unavailable for this deployment.</span>
+                              <span className="text-gray-500 font-mono text-xs">Item details are unavailable for this order.</span>
                             </div>
                           )}
                         </div>
 
                         <div className="mt-4 md:mt-6 pt-3 md:pt-4 border-t border-dashed border-gray-800">
-                          <p className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-widest mb-1 md:mb-2">Delivery Coordinates</p>
+                          <p className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-widest mb-1 md:mb-2">Delivery Address</p>
                           <p className="text-xs md:text-sm text-gray-400 font-mono whitespace-pre-wrap">{order.shipping_address || 'Address on file'}</p>
                         </div>
                       </div>
@@ -280,7 +280,7 @@ export default function Profile() {
 
               {favorites.length === 0 ? (
                 <div className="bg-[#0f1115] border border-gray-800 rounded-xl p-8 md:p-12 text-center shadow-lg">
-                  <p className="text-gray-500 font-mono text-xs md:text-sm uppercase tracking-widest mb-6">No hardware pinned to your dossier.</p>
+                  <p className="text-gray-500 font-mono text-xs md:text-sm uppercase tracking-widest mb-6">You haven't saved any items yet.</p>
                   <button onClick={() => navigate('/shop')} className="w-full sm:w-auto bg-ion text-midnight font-bold uppercase tracking-widest px-8 py-3.5 md:py-3 rounded hover:bg-white transition-colors text-xs md:text-sm">
                     Browse Gear
                   </button>
@@ -360,13 +360,13 @@ export default function Profile() {
           {activeTab === 'support' && (
             <div className="animate-fadeIn space-y-4 md:space-y-6">
               <div className="border-b border-gray-800 pb-4 md:pb-6 mb-6 md:mb-8">
-                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-widest">Support Node</h1>
+                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-widest">Support</h1>
               </div>
 
               <div className="bg-[#0f1115] border border-gray-800 rounded-xl p-5 md:p-8 max-w-2xl shadow-lg">
                 <h3 className="text-lg md:text-xl font-bold uppercase tracking-widest mb-4 md:mb-6 text-white">Need Assistance?</h3>
                 <p className="text-gray-400 mb-6 md:mb-8 leading-relaxed text-sm md:text-base">
-                  If you are experiencing issues with a recent hardware deployment or require technical support for your Midnight gear, our operatives are standing by.
+                  If you have a question about a recent order or need technical support for your Midnight gear, our team is here to help.
                 </p>
 
                 <div className="space-y-4 md:space-y-6">
@@ -375,7 +375,7 @@ export default function Profile() {
                       <svg className="w-5 h-5 text-electric" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5 md:mb-1">Comm-Link (Email)</p>
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5 md:mb-1">Email</p>
                       <p className="text-white font-mono text-xs md:text-base">paulharold.batiles@gmail.com</p>
                     </div>
                   </div>
@@ -385,7 +385,7 @@ export default function Profile() {
                       <svg className="w-5 h-5 text-electric" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5 md:mb-1">Direct Line</p>
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5 md:mb-1">Phone</p>
                       <p className="text-white font-mono text-xs md:text-base">09205278696</p>
                     </div>
                   </div>

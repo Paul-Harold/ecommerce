@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../libs/supabase.js';
+import { useAutoMessage } from './useAdminTools.js';
+import { AdminMessage } from './AdminUI.jsx';
 
 export default function VouchersTab() {
   const emptyVoucher = { code: '', discount_percent: 10, max_uses: 100, expires_at: '', is_active: true };
-  
+
   const [vouchersList, setVouchersList] = useState([]);
   const [newVoucher, setNewVoucher] = useState(emptyVoucher);
   const [editVoucherId, setEditVoucherId] = useState(null);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const { message, showSuccess, showError } = useAutoMessage();
 
   useEffect(() => {
     fetchVouchers();
@@ -44,21 +46,20 @@ export default function VouchersTab() {
       if (editVoucherId) {
         const { error } = await supabase.from('vouchers').update(payload).eq('id', editVoucherId);
         if (error) throw error;
-        setMessage({ type: 'success', text: `Voucher updated successfully!` });
+        showSuccess('Voucher updated successfully!');
       } else {
         const { error } = await supabase.from('vouchers').insert([payload]);
         if (error) throw error;
-        setMessage({ type: 'success', text: `Voucher generated successfully!` });
+        showSuccess('Voucher generated successfully!');
       }
-      
+
       setNewVoucher(emptyVoucher);
       setEditVoucherId(null);
       fetchVouchers(); // Refresh list locally
-    } catch (error) { 
-      setMessage({ type: 'error', text: error.code === '23505' ? 'Voucher code already exists.' : 'Failed to save voucher.' }); 
-    } finally { 
-      setIsSubmitting(false); 
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000); 
+    } catch (error) {
+      showError(error.code === '23505' ? 'Voucher code already exists.' : 'Failed to save voucher.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -67,9 +68,9 @@ export default function VouchersTab() {
     try {
       await supabase.from('vouchers').delete().eq('id', id);
       fetchVouchers();
-      setMessage({ type: 'success', text: 'Voucher deleted.' });
-    } catch (error) { 
-      setMessage({ type: 'error', text: 'Failed to delete voucher.' }); 
+      showSuccess('Voucher deleted.');
+    } catch {
+      showError('Failed to delete voucher.');
     }
   };
 
@@ -87,11 +88,7 @@ export default function VouchersTab() {
 
   return (
     <div className="animate-fadeIn">
-      {message.text && (
-        <div className={`mb-4 lg:mb-6 px-4 py-3 lg:px-6 lg:py-4 rounded font-bold uppercase tracking-widest text-xs lg:text-sm flex items-center gap-3 border ${message.type === 'success' ? 'bg-green-500/10 text-green-500 border-green-500/30' : 'bg-red-500/10 text-red-500 border-red-500/30'}`}>
-          {message.text}
-        </div>
-      )}
+      <AdminMessage message={message} />
 
       <div className="flex justify-between items-center mb-6 lg:mb-8 border-b border-gray-800 pb-4">
         <h1 className="text-2xl lg:text-3xl font-bold uppercase tracking-widest">{editVoucherId ? 'Edit Voucher' : 'Generate Voucher'}</h1>

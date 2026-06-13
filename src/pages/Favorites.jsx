@@ -28,10 +28,10 @@ export default function Favorites() {
   if (favorites.length === 0) {
     return (
       <div className="min-h-screen bg-midnight flex flex-col items-center justify-center text-white px-4 sm:px-6">
-        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-widest mb-3 md:mb-4 text-center">No Saved Directives</h2>
-        <p className="text-gray-500 mb-6 md:mb-8 text-center max-w-md text-sm md:text-base">You haven't added any gear to your favorites list yet.</p>
+        <h2 className="text-2xl md:text-3xl font-black uppercase tracking-widest mb-3 md:mb-4 text-center">No Saved Items</h2>
+        <p className="text-gray-500 mb-6 md:mb-8 text-center max-w-md text-sm md:text-base">You haven't added any gear to your favorites yet.</p>
         <Link to="/shop" className="text-electric hover:text-midnight hover:bg-electric transition-colors uppercase tracking-widest text-xs md:text-sm font-bold border border-electric/30 px-6 py-3 md:py-4 rounded w-full sm:w-auto text-center">
-          Return to Arsenal
+          Continue Shopping
         </Link>
       </div>
     );
@@ -44,7 +44,7 @@ export default function Favorites() {
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-widest mb-2 md:mb-4">
             Saved <span className="text-electric">Hardware</span>
           </h1>
-          <p className="text-gray-400 text-sm md:text-base lg:text-lg">Your personal watchlist for future deployment.</p>
+          <p className="text-gray-400 text-sm md:text-base lg:text-lg">Your saved items, ready whenever you are.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
@@ -92,7 +92,7 @@ export default function Favorites() {
                       }}
                       className="bg-electric text-midnight font-bold py-3 px-8 rounded hover:bg-white transition-all duration-300 uppercase tracking-wider transform translate-y-4 group-hover:translate-y-0"
                     >
-                      Quick Deploy
+                      Add to Cart
                     </button>
                   </div>
                 </div>
@@ -112,7 +112,7 @@ export default function Favorites() {
                     )}
                   </div>
 
-                  {/* Mobile Quick Deploy Button */}
+                  {/* Mobile Add to Cart Button */}
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
@@ -120,7 +120,7 @@ export default function Favorites() {
                     }}
                     className="lg:hidden w-full mt-4 bg-electric/10 border border-electric/30 text-electric hover:bg-electric hover:text-midnight font-bold py-3 px-4 rounded transition-all duration-300 uppercase tracking-widest text-xs"
                   >
-                    Quick Deploy
+                    Add to Cart
                   </button>
                 </div>
               </div>

@@ -81,4 +81,5 @@ export function CartProvider({ children }) {
   );
 }
 
-export const useCart = () => useContext(CartContext); 
+// eslint-disable-next-line react-refresh/only-export-components -- colocated hook is the standard context pattern
+export const useCart = () => useContext(CartContext);

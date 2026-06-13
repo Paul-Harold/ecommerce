@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../libs/supabase.js';
+import { useAutoMessage, useImageUpload } from './useAdminTools.js';
+import { AdminMessage } from './AdminUI.jsx';
 
 export default function PagesTab() {
   const pages = ['home', 'shop', 'offers', 'global'];
@@ -14,8 +16,8 @@ export default function PagesTab() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const { message, showSuccess, showError } = useAutoMessage();
+  const { uploading: isUploading, uploadImage } = useImageUpload();
 
   useEffect(() => {
     fetchProducts();
@@ -80,26 +82,12 @@ export default function PagesTab() {
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
-    setIsUploading(true);
-    setMessage({ type: '', text: '' });
-    
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `images/${fileName}`;
-      
-      const { error: uploadError } = await supabase.storage.from('assets').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      
-      const { data } = supabase.storage.from('assets').getPublicUrl(filePath);
-      
-      setPageContent(prev => ({ ...prev, hero_image_url: data.publicUrl }));
-      setMessage({ type: 'success', text: 'Image successfully uploaded.' });
-    } catch (error) { 
-      setMessage({ type: 'error', text: 'Upload failed.' }); 
-    } finally { 
-      setIsUploading(false); 
+      const url = await uploadImage(file);
+      setPageContent(prev => ({ ...prev, hero_image_url: url }));
+      showSuccess('Image uploaded successfully.');
+    } catch {
+      showError('Image upload failed.');
     }
   };
 
@@ -124,22 +112,17 @@ export default function PagesTab() {
       }, { onConflict: 'page_name' });
       
       if (error) throw error;
-      setMessage({ type: 'success', text: `${activePage.toUpperCase()} content updated successfully.` });
-    } catch (error) { 
-      setMessage({ type: 'error', text: 'Failed to update content.' }); 
-    } finally { 
-      setIsSubmitting(false); 
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000); 
+      showSuccess(`${activePage.toUpperCase()} content updated successfully.`);
+    } catch {
+      showError('Failed to update content.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="animate-fadeIn">
-      {message.text && (
-        <div className={`mb-4 lg:mb-6 px-4 py-3 lg:px-6 lg:py-4 rounded font-bold uppercase tracking-widest text-xs lg:text-sm flex items-center gap-3 border ${message.type === 'success' ? 'bg-green-500/10 text-green-500 border-green-500/30' : 'bg-red-500/10 text-red-500 border-red-500/30'}`}>
-          {message.text}
-        </div>
-      )}
+      <AdminMessage message={message} />
 
       <h1 className="text-2xl lg:text-3xl font-bold uppercase tracking-widest mb-6 lg:mb-8 border-b border-gray-800 pb-4">Page Content Editor</h1>
       

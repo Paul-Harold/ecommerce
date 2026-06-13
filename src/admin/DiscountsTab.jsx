@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../libs/supabase.js';
+import { useAutoMessage } from './useAdminTools.js';
+import { AdminMessage } from './AdminUI.jsx';
 
 export default function DiscountsTab() {
   const emptyDiscount = { product_id: '', discount_percent: '', expires_at: '' };
-  
+
   const [productsList, setProductsList] = useState([]);
   const [discountForm, setDiscountForm] = useState(emptyDiscount);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const { message, showSuccess, showError } = useAutoMessage();
 
   useEffect(() => {
     fetchProducts();
@@ -38,15 +40,14 @@ export default function DiscountsTab() {
       
       const { error } = await supabase.from('products').update(payload).eq('id', discountForm.product_id);
       if (error) throw error;
-      
-      setMessage({ type: 'success', text: 'Discount applied successfully.' });
+
+      showSuccess('Discount applied successfully.');
       setDiscountForm(emptyDiscount);
-      fetchProducts(); // Refresh the grid
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to apply discount.' });
+      fetchProducts(); // Refresh the list
+    } catch {
+      showError('Failed to apply discount.');
     } finally {
       setIsSubmitting(false);
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     }
   };
 
@@ -56,9 +57,9 @@ export default function DiscountsTab() {
       if (error) throw error;
       
       fetchProducts();
-      setMessage({ type: 'success', text: 'Discount removed.' });
-    } catch (error) { 
-      setMessage({ type: 'error', text: 'Failed to remove discount.' }); 
+      showSuccess('Discount removed.');
+    } catch {
+      showError('Failed to remove discount.');
     }
   };
 
@@ -66,11 +67,7 @@ export default function DiscountsTab() {
 
   return (
     <div className="animate-fadeIn">
-      {message.text && (
-        <div className={`mb-4 lg:mb-6 px-4 py-3 lg:px-6 lg:py-4 rounded font-bold uppercase tracking-widest text-xs lg:text-sm flex items-center gap-3 border ${message.type === 'success' ? 'bg-green-500/10 text-green-500 border-green-500/30' : 'bg-red-500/10 text-red-500 border-red-500/30'}`}>
-          {message.text}
-        </div>
-      )}
+      <AdminMessage message={message} />
 
       <h1 className="text-2xl lg:text-3xl font-bold uppercase tracking-widest mb-6 lg:mb-8 border-b border-gray-800 pb-4">Manage Discounts</h1>
       
